@@ -1,5 +1,16 @@
+const Express = require('express');
+const app = Express()
+
+app.get('/', function (req, res) {
+    res.send('Hello World')
+})
+let port = process.env.PORT || 3000;
+app.listen(port)
+
+require('dotenv').config()
+
 const Discord = require('discord.js');
-const auth = require('./data.json').auth;
+const auth = process.env.token;
 const client = new Discord.Client();
 
 
@@ -16,9 +27,15 @@ client.on('message', m => {
                 case "play": 
                     if(args[1] == 'despacito') {
                         m.channel.send("https://www.youtube.com/watch?v=AjPwUDkndhg");
-                    } else {
-                        m.channel.send("ª");
-                        m.channel.send("... Aún no sé, estoy chikito xd");
+                    }
+                    console.log('Pasando por "despacito"')
+                    break
+                case "atencion":
+                    m.channel.send("ATENCIÓN: Gracias por su atención. @everyone")
+                    break
+                case "calcula":
+                    if(args[1] != null && args[3] != null) {
+                      m.channel.send("Resultado: " + calcular(parseInt(args[1]), parseInt(args[3]), args[2]))
                     }
                     break
                 default:
@@ -31,4 +48,19 @@ client.on('message', m => {
 });
 
 
-client.login(auth.Token);
+function calcular(a, b, operation) {
+    switch (operation) {
+        case "-":
+            return a - b
+        case "+":
+            return a + b
+        case "raiz":
+            return Math.pow(a, 1 / b)
+        case "*" :
+            return a * b
+        case "x" :
+            return a * b
+    }
+}
+
+client.login(auth);
