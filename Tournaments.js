@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 class Player {
     constructor(Username, TotalKills, Points) {
         this.Username = Username,
@@ -44,6 +46,7 @@ let Cris = new Player('Cris', 35, 1750);
 
 let Guayabitas = new Team('Guayabitas', [Zerofelx, Cris])
 
+
 let GuayabitasRank = new RankTable('Guayabitas', 'Call of Duty: Mobile', CreateRank(Guayabitas))
 
 function CreateRank(team, order) {
@@ -67,6 +70,16 @@ function CreateRank(team, order) {
             break;
     }
     return Rank
+}
+
+async function CreateTeam(team = Team) {
+    let teams = [team]
+    teams = JSON.stringify(teams)
+    fs.writeFileSync('./data/teams.json', teams)
+}
+
+async function CreatePlayer(player = Player, team = String) {
+    
 }
 
 console.log(GuayabitasRank)
