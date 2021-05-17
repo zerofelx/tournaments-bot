@@ -13,6 +13,8 @@ const Discord = require('discord.js');
 const auth = process.env.token;
 const client = new Discord.Client();
 
+const RankTable = require('./Tournaments').GuayabitasRank
+
 
 client.on('ready', () => {
     console.log("ON");
@@ -24,23 +26,18 @@ client.on('message', m => {
         let command = args[0];
         if(command != '') {
             switch (command) {
-                case "play": 
-                    if(args[1] == 'despacito') {
-                        m.channel.send("https://www.youtube.com/watch?v=AjPwUDkndhg");
-                    }
-                    console.log('Pasando por "despacito"')
-                    break
-                case "atencion":
-                    m.channel.send("ATENCIÓN: Gracias por su atención. @everyone")
-                    break
                 case "calcula":
                     if(args[1] != null && args[3] != null) {
                       m.channel.send("Resultado: " + calcular(parseInt(args[1]), parseInt(args[3]), args[2]))
                     }
                     break
-                default:
-                    m.channel.send("ª");
-                    m.channel.send("... Aún no sé, estoy chikito xd");
+                case 'rank':
+                    m.channel.send(`${RankTable.TableName} Ranking: `).then(async function () {
+                        for(i in RankTable.Rank) {
+                            let table = `#${parseInt(i)+1} ${RankTable.Rank[i].Player}:         ${RankTable.Rank[i].Kills} Kills    |   ${RankTable.Rank[i].Tops} Tops    |   ${RankTable.Rank[i].Points} Puntos`
+                            await m.channel.send(table)
+                        }
+                    })
                     break
             }
         }
