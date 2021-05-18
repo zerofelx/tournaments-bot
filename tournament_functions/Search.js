@@ -1,6 +1,6 @@
 const Get = require('./Get')
 
-async function SearchTeam(TeamName = String) {
+async function SearchTeam(TeamName) {
     let promise = new Promise((resolve, reject) => {
         Get.GetTeamsData('teams')
             .then(teams => {
@@ -11,6 +11,23 @@ async function SearchTeam(TeamName = String) {
                 }
                 reject(`El team '${TeamName}' no existe.`)
             }).catch(err => reject(err))
+    })
+
+    return await promise
+}
+
+async function SearchPlayer(PlayerName, TeamName) {
+    let promise = new Promise((resolve, reject) => {
+        Get.GetTeamPlayers(TeamName)
+            .then(players => {
+                for(P in players) {
+                    if(players[P].Username == PlayerName) {
+                        resolve(`El jugador '${PlayerName}' ya existe`)
+                    }
+                }
+                reject(`El jugador ${PlayerName} no existe`);
+            }) 
+            .catch(err => reject(err))
     })
 
     return await promise
@@ -33,5 +50,6 @@ async function SearchTeamByID(ID) {
 
 module.exports = {
     SearchTeam,
-    SearchTeamByID
+    SearchTeamByID,
+    SearchPlayer
 }
