@@ -21,6 +21,7 @@ async function CreateTeam(team = Team) {
                         teams.push(team)
 
                         teams = JSON.stringify(teams)
+                        InitTeam(team.TeamName)
                         fs.writeFileSync('./data/teams/index.json', teams)
                         
                         resolve('Creado')
@@ -56,11 +57,11 @@ async function CreatePlayer(player, TeamName) {
 }
 
 // Crear una tabla de Ranking
-async function CreateRank(team, game) {
+async function CreateRank(TeamName, game) {
     let promise = new Promise((resolve, reject) => {
         let Rank = `[{ "${game}" : []}]`
         Rank = JSON.parse(Rank)
-        Get.GetTeamPlayers(team.TeamName)
+        Get.GetTeamPlayers(TeamName)
             .then(players => {
                 for(var p in players) {
                     let Player = players[p]
@@ -72,7 +73,7 @@ async function CreateRank(team, game) {
                     })
                 }
                 Rank.sort((a, b) => b.Points - a.Points)
-                fs.writeFileSync(`./data/teams/${team.TeamName}/rank.json`, JSON.stringify(Rank))
+                fs.writeFileSync(`./data/teams/${TeamName}/rank.json`, JSON.stringify(Rank))
                 resolve(Rank)
             })
             .catch(err => reject(err))

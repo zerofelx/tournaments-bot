@@ -11,12 +11,20 @@ let Luis = new Scheme.Player(3, 'Luiis');
 
 let Guayabitas = new Scheme.Team(1 ,'Guayabitas', 3)
 
-// GuayabitasRank = new Scheme.RankTable('Guayabitas', 'Call of Duty: Mobile', C.CreateRank(Guayabitas, 'Call of Duty: Mobile'))
-G.GetRankingData('Guayabitas', 'LoL').then(rank => console.log(rank)).catch(err => console.log(err))
-
 C.CreateTeam(Guayabitas).catch(err => console.log(err))
-
-C.CreatePlayer('Zerofelx', Guayabitas.TeamName).then(m => console.log(m)).catch(e => console.log(e))
+    .then(() => {
+        C.CreatePlayer('Zerofelx', Guayabitas.TeamName)
+            .then(() => {
+                C.CreateRank('Guayabitas', 'COD').then(() => {
+                    G.GetRankingData('Guayabitas', 'COD')
+                        .then(rank => console.log(rank))
+                        .catch(err => console.log("Table: ", err))
+                })
+                .catch(m => console.log("Error creando el ranking  ", m))
+            })
+            .catch(e => console.log(e))
+    })
+    .catch(m => console.log("Error creando el team  ", m))
 
 module.exports = {
     // GuayabitasRank
