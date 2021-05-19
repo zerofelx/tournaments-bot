@@ -35,77 +35,90 @@ client.on('message', m => {
                     }
                     break
                 case 'rank':
-                    if(args[1] != undefined && args[2] != undefined) {
-                        let team = args[1];
-                        let spaces = args.length
-                        spaces = spaces - 1
-                        let Game = '';
-                        for(i = 2; i <= spaces; i++) {
-                            Game += args[i]
-                            if(i < spaces) {
-                                Game += ' '
-                            }
-                        }
-                        Get.GetRankingData(team, Game)
-                            .then(RankTable => {
-                                if(RankTable.Rank != undefined) {
-                                    m.channel.send(`${RankTable.TeamName} - ${RankTable.Game} Ranking: `)
-                                    .then(async function () {
-                                        let table = ''
-                                        for(i in RankTable.Rank) {
-                                            table += `#${parseInt(i)+1} ${RankTable.Rank[i].Player}:         ${RankTable.Rank[i].Kills} Kills    |   ${RankTable.Rank[i].Tops} Tops    |   ${RankTable.Rank[i].Points} Puntos\n`
-                                        }
-                                        await m.channel.send(table)
-                                    })
-                                } else {
-                                    m.channel.send('No existe el ranking de ese juego.')
-                                }
-                            })
-                            .catch(err => console.log(err))
-                    }
+                    Rank(args, m)
                     break
                 case 'crearequipo':
-                    if(args[1] != null) {
-                        m.channel.send("Creando equipo...").then(async () => {
-                            let spaces = args.length
-                            spaces = spaces - 1
-                            let Name = '';
-                            if(args[2] != undefined) {
-                                for(i = 1; i <= spaces; i++) {
-                                    Name += args[i]
-                                    if(i < spaces) {
-                                        Name += ' '
-                                    }
-                                }
-                            } else {
-                                Name = args[1]
-                            }
-                            
-                            let team = new Scheme.Team(0, Name.toLowerCase(), Name)
-                            Create.CreateTeam(team)
-                                .then(() => {
-                                    m.channel.send(`Equpo '${Name}' creado satisfactoriamente`);
-                                })
-                                .catch((err) => {
-                                    m.channel.send(err)
-                                })
-                        })
-                    }
+                    CrearEquipo(args, m)
                     break
                 case 'listarequipos':
-                    m.channel.send("Lista de equipos:").then(async () => {
-                        Get.GetTeamsData().then(async data => {
-                            let message = ''
-                            for(i in data) {
-                                message += `Equipo: ${data[i].TeamName}  ~  Cantidad de miembros: ${data[i].Players}\n`
-                            }
-                            await m.channel.send(message)
-                        })
-                    })
+                    ListarEquipos(m)
+                    break
             }
         }
     }
 });
+
+function CrearEquipo(args, m) {
+    if(args[1] != null) {
+        m.channel.send("Creando equipo...").then(async () => {
+            let spaces = args.length
+            spaces = spaces - 1
+            let Name = '';
+            if(args[2] != undefined) {
+                for(i = 1; i <= spaces; i++) {
+                    Name += args[i]
+                    if(i < spaces) {
+                        Name += ' '
+                    }
+                }
+            } else {
+                Name = args[1]
+            }
+            
+            let team = new Scheme.Team(0, Name.toLowerCase(), Name)
+            Create.CreateTeam(team)
+                .then(() => {
+                    m.channel.send(`Equpo '${Name}' creado satisfactoriamente`);
+                })
+                .catch((err) => {
+                    m.channel.send(err)
+                })
+        })
+    }
+}
+
+function Rank(args, m) {
+    if(args[1] != undefined && args[2] != undefined) {
+        let team = args[1];
+        let spaces = args.length
+        spaces = spaces - 1
+        let Game = '';
+        for(i = 2; i <= spaces; i++) {
+            Game += args[i]
+            if(i < spaces) {
+                Game += ' '
+            }
+        }
+        Get.GetRankingData(team, Game)
+            .then(RankTable => {
+                if(RankTable.Rank != undefined) {
+                    m.channel.send(`${RankTable.TeamName} - ${RankTable.Game} Ranking: `)
+                    .then(async function () {
+                        let table = ''
+                        for(i in RankTable.Rank) {
+                            table += `#${parseInt(i)+1} ${RankTable.Rank[i].Player}:         ${RankTable.Rank[i].Kills} Kills    |   ${RankTable.Rank[i].Tops} Tops    |   ${RankTable.Rank[i].Points} Puntos\n`
+                        }
+                        await m.channel.send(table)
+                    })
+                } else {
+                    m.channel.send('No existe el ranking de ese juego.')
+                }
+            })
+            .catch(err => console.log(err))
+    }
+}
+
+function ListarEquipos(m) {
+    m.channel.send("Lista de equipos:").then(async () => {
+        Get.GetTeamsData().then(async data => {
+            let message = ''
+            for(i in data) {
+                message += `Equipo: ${data[i].TeamName}  ~  Cantidad de miembros: ${data[i].Players}\n`
+            }
+            await m.channel.send(message)
+        })
+    })
+}
 
 
 function calcular(a, b, operation) {
