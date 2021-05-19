@@ -81,7 +81,7 @@ client.on('message', m => {
                                 Name = args[1]
                             }
                             
-                            let team = new Scheme.Team(0, Name)
+                            let team = new Scheme.Team(0, Name.toLowerCase(), Name)
                             Create.CreateTeam(team)
                                 .then(() => {
                                     m.channel.send(`Equpo '${Name}' creado satisfactoriamente`);
