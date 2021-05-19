@@ -1,0 +1,22 @@
+{
+    "0" : {
+        "title": "VoidGame",
+        "slug": "void"
+    },
+    "1" : {
+        "title": "PUBG Mobile",
+        "slug": "PUBG"
+    },
+    "2" : {
+        "title": "FreeFire",
+        "slug": "FreeFire"
+    },
+    "3" : {
+        "title": "Call of Duty: Mobile",
+        "slug": "COD"
+    },
+    "4" : {
+        "title": "Fortnite",
+        "slug": "Fortnite"
+    }
+}

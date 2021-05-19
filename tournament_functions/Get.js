@@ -1,6 +1,7 @@
 const fs = require('fs')
 const Create = require('./Create')
 const Scheme = require('./Schemes')
+const GamesData = require('../data/games.json');
 
 // Obtener los datos del archivo de Teams
 async function GetTeamsData() {
@@ -23,6 +24,7 @@ async function GetTeamsData() {
 
 // Obtener los jugadores de un Team
 async function GetTeamPlayers(TeamName) {
+    TeamName = TeamName.toLowerCase()
     let promise = new Promise((resolve, reject) => {
         fs.readFile(`./data/teams/${TeamName}/players.json`, (err, data) => {
             if(err) { reject('El archivo no tiene datos o no existe') }
@@ -40,14 +42,26 @@ async function GetTeamPlayers(TeamName) {
 }
 
 // Obtener los datos de un Ranking
-async function GetRankingData(TeamName, Game) {
+async function GetRankingData(TeamName, Game = 0) {
+    TeamName = TeamName.toLowerCase()
+    let GameSlug = GamesData[Game].slug
+    let GameTitle = GamesData[Game].title
+
     let promise = new Promise((resolve, reject) => {
         fs.readFile(`./data/teams/${TeamName}/rank.json`, (err, data) => {
             if(err) { reject(err) }
             try {
                 let Rank = JSON.parse(data)
-                let Table = new Scheme.RankTable(`${TeamName}`, Game, Rank[0][Game])
-                resolve(Table)
+
+                if( Rank == 0) { reject(('Ranking vacío 1'), Rank) }
+
+                for(i in Rank) {
+                    if(Rank[i][GameSlug] != undefined) {
+                        let Table = new Scheme.RankTable(`${TeamName}`, GameTitle, Rank[i][GameSlug])
+                        resolve(Table)
+                    }
+                }
+                reject('No existe')
             } catch {
                 reject('No existe este ranking')
             }
@@ -60,8 +74,10 @@ async function GetRankingData(TeamName, Game) {
 // Crear el team "Reclutas libres"
 async function CreateFirstTeam() {
     let TeamName = 'Reclutas Libres'
+    let TeamSlug = 'reclutas libres'
 
-    let team = new Scheme.Team(0, TeamName, 0)
+    let team = new Scheme.Team(0, TeamSlug,TeamName, 0)
+    TeamName = TeamName.toLowerCase()
     team = JSON.stringify([team])
     await fs.writeFileSync('./data/teams/index.json', team)
 
@@ -76,6 +92,7 @@ async function CreateFirstTeam() {
 
 // Crear el jugador Null
 async function CreateFirstPlayer(TeamName) {
+    TeamName = TeamName.toLowerCase()
     let User = 'NullPlayer'
 
     let player = new Scheme.Player(0, User, 0, 0, 0)

@@ -3,6 +3,8 @@ const Team = require('./Schemes.js').Team
 const Player = require('./Schemes').Player
 const Search = require('./Search')
 const Get = require('./Get')
+const Modify = require('./Modify');
+const GamesData = require('../data/games.json');
 
 // Crear un Team 
 async function CreateTeam(team = Team) {
@@ -33,11 +35,15 @@ async function CreateTeam(team = Team) {
 }
 
 
+// Crear jugador vinculado a un equipo en especifico
 async function CreatePlayer(player, TeamName) {
+    TeamName = TeamName.toLowerCase()
     let promise = new Promise((resolve, reject) => {
+        // Buscar jugador, si existe salta error pero si no existe procede a crearlo
         Search.SearchPlayer(player, TeamName)
             .then(err => reject(err))
             .catch((message) => {
+                // Obtener la lista de jugadores para actualizarla
                 Get.GetTeamPlayers(TeamName)
                     .then(players => {
                         let id = players.length;
@@ -46,7 +52,9 @@ async function CreatePlayer(player, TeamName) {
 
                         players = JSON.stringify(players)
                         fs.writeFileSync(`./data/teams/${TeamName}/players.json`, players)
-                        
+
+                        // Agregar +1 al número de jugadores de un equipo
+                        Modify.AddPlayersNumbers({ TeamName: TeamName, Number: 1 })
                         resolve('Creado')
                     })
                     .catch(err => reject(err))
@@ -57,32 +65,53 @@ async function CreatePlayer(player, TeamName) {
 }
 
 // Crear una tabla de Ranking
-async function CreateRank(TeamName, game) {
+async function CreateRank(TeamName, game = 0) {
+    let GameSlug = GamesData[game].slug
+
+    TeamName = TeamName.toLowerCase()
     let promise = new Promise((resolve, reject) => {
-        let Rank = `[{ "${game}" : []}]`
+        let Rank = `[{ "${GameSlug}" : []}]`
         Rank = JSON.parse(Rank)
-        Get.GetTeamPlayers(TeamName)
-            .then(players => {
-                for(var p in players) {
-                    let Player = players[p]
-                    Rank[0][game].push({
-                        Player: Player.Username,
-                        Kills: 0,
-                        Tops: 0,
-                        Points: 0
-                    })
+        // Busca el Ranking del juego en concreto, si ya existe saltará error.
+        Search.SearchRanking(TeamName, game)
+            .catch(() => reject('El ranking ya existe'))
+            .then(response => {
+                if(response == false) {
+                    // Lee la lista de Rankings de ese equipo y la actualiza agregando el nuevo ranking
+                    let RankingsJSON = fs.readFileSync(`./data/teams/${TeamName}/rank.json`)
+                    RankingsJSON = JSON.parse(RankingsJSON)
+                    // Obtiene la lista de jugadores de un equipo para agregarlos al ranking
+                    Get.GetTeamPlayers(TeamName)
+                        .then(players => {
+                            for(var p in players) {
+                                let Player = players[p]
+                                Rank[0][GameSlug].push({
+                                    Player: Player.Username,
+                                    Kills: 0,
+                                    Tops: 0,
+                                    Points: 0
+                                })
+                            }
+                            Rank.sort((a, b) => b.Points - a.Points)
+    
+                            RankingsJSON.push(Rank[0])
+                            fs.writeFileSync(`./data/teams/${TeamName}/rank.json`, JSON.stringify(RankingsJSON))
+                            resolve('Ranking creado')
+                        })
+                        .catch(err => reject(err))
+                } else if (response == true) {
+                    reject('El ranking ya existe')
                 }
-                Rank.sort((a, b) => b.Points - a.Points)
-                fs.writeFileSync(`./data/teams/${TeamName}/rank.json`, JSON.stringify(Rank))
-                resolve(Rank)
             })
-            .catch(err => reject(err))
+
     })
     return await promise
 }
 
+// Crear los archivos necesarios para un nuevo equipo
 async function InitTeam(TeamName) {
     let promise = new Promise(async (resolve, reject) => {
+        TeamName = TeamName.toLowerCase()
         let whiteFile = []
         whiteFile = JSON.stringify(whiteFile)
         await fs.mkdirSync(`./data/teams/${TeamName}`, {recursive: true})

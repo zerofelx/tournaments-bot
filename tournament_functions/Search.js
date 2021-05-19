@@ -1,5 +1,9 @@
+const fs = require('fs')
 const Get = require('./Get')
+const GamesData = require('../data/games.json');
 
+
+// Buscar un equipo
 async function SearchTeam(TeamName) {
     let promise = new Promise((resolve, reject) => {
         Get.GetTeamsData('teams')
@@ -16,6 +20,35 @@ async function SearchTeam(TeamName) {
     return await promise
 }
 
+// Buscar el raking de un equipo
+async function SearchRanking(TeamName, Game = 0) {
+    TeamName = TeamName.toLowerCase()
+    let GameSlug = GamesData[Game].slug
+
+    let promise = new Promise((resolve, reject) => {
+        fs.readFile(`./data/teams/${TeamName}/rank.json`, (err, data) => {
+            if(err) { reject(err) }
+            try {
+                let Rank = JSON.parse(data)
+                if( Rank == 0) { resolve(false) }
+
+                for(i = 0; i < Rank.length; i++) {
+                    if(Rank[i][GameSlug]) {
+                        resolve(true)
+                    }
+                }
+                resolve(false)
+
+            } catch {
+                reject('No existe este ranking')
+            }
+        })
+    })
+
+    return await promise
+}
+
+// Buscar un jugador
 async function SearchPlayer(PlayerName, TeamName) {
     let promise = new Promise((resolve, reject) => {
         Get.GetTeamPlayers(TeamName)
@@ -33,6 +66,7 @@ async function SearchPlayer(PlayerName, TeamName) {
     return await promise
 }
 
+// Buscar un jugador por su ID
 async function SearchTeamByID(ID) {
     let promise = new Promise((resolve, reject) => {
         Get.GetTeamsData('teams').then(teams => {
@@ -51,5 +85,6 @@ async function SearchTeamByID(ID) {
 module.exports = {
     SearchTeam,
     SearchTeamByID,
-    SearchPlayer
+    SearchPlayer,
+    SearchRanking
 }

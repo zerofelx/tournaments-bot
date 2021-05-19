@@ -6,8 +6,9 @@ class Player {
 }
 
 class Team {
-    constructor(TeamID, TeamName, Players) {
+    constructor(TeamID, Slug, TeamName, Players) {
         this.TeamName = TeamName,
+        this.Slug = Slug,
         this.TeamID = TeamID,
         this.Players = Players
     }
