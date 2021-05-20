@@ -136,7 +136,8 @@ function CrearEquipo({args, m}) {
         m.channel.send("Creando equipo...").then(async () => {
             let spaces = args.length
             spaces = spaces - 1
-            let TeamName = Auxiliar['format-teamName']({array: args, oWords: 3})
+            let TeamName = Auxiliar['format-teamName']({array: args, oWords: 2})
+            console.log(TeamName)
             
             let team = new Scheme.Team(0, TeamName.toLowerCase(), TeamName)
             Create.CreateTeam(team)
