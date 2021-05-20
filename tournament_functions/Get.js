@@ -42,13 +42,14 @@ async function GetTeamPlayers(TeamName) {
 }
 
 // Obtener los datos de un Ranking
-async function GetRankingData(TeamName, Game = 0) {
-    TeamName = TeamName.toLowerCase()
+async function GetRankingData({TeamName, Game = 0}) {
+    TeamSlug = TeamName.toLowerCase()
+
     let GameSlug = GamesData[Game].slug
     let GameTitle = GamesData[Game].title
 
     let promise = new Promise((resolve, reject) => {
-        fs.readFile(`./data/teams/${TeamName}/rank.json`, (err, data) => {
+        fs.readFile(`./data/teams/${TeamSlug}/rank.json`, (err, data) => {
             if(err) { reject(err) }
             try {
                 let Rank = JSON.parse(data)

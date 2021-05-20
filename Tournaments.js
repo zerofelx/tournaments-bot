@@ -9,19 +9,23 @@ const A = require('./tournament_functions/Modify')
 let Guayabitas = new Scheme.Team(1, 'guayabitas','Guayabitas', 3)
 
 
-C.CreateTeam(Guayabitas).catch(err => console.log(err))
-    .then(() => {
-        C.CreatePlayer('Zerofelx', Guayabitas.TeamName)
-            .then(() => {
-                C.CreateRank('Guayabitas', 1).then((m) => {
-                    console.log(m)
-                    G.GetRankingData('Guayabitas', 1).then(m => console.log(m)).catch(err => console.log("Error obteniendo Ranking: ", err))
-                }).catch(err => console.log("Error creando Ranking: ", err))
-            })
-            .catch(e => console.log(e))
-    })
-    .catch(m => console.log("Error creando el team  ", m))
+// C.CreateTeam(Guayabitas).catch(err => console.log(err))
+//     .then(() => {
+//         C.CreatePlayer('Zerofelx', Guayabitas.TeamName)
+//             .then(() => {
+//                 C.CreateRank('Guayabitas', 1).then((m) => {
+//                     console.log(m)
+//                     G.GetRankingData('Guayabitas', 1).then(m => console.log(m)).catch(err => console.log("Error obteniendo Ranking: ", err))
+//                 }).catch(err => console.log("Error creando Ranking: ", err))
+//             })
+//             .catch(e => console.log(e))
+//     })
+//     .catch(m => console.log("Error creando el team  ", m))
  
+C.CreateRank('Guayabitas', 1).then((m) => {
+    console.log(m)
+    G.GetRankingData('Guayabitas', 1).then(m => console.log(m)).catch(err => console.log("Error obteniendo Ranking: ", err))
+}).catch(err => console.log("Error creando Ranking: ", err))
 let PlayerPoints = {
     Player: 'Zerofelx',
     Team: 'Guayabitas',

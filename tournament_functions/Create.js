@@ -36,7 +36,7 @@ async function CreateTeam(team = Team) {
 
 
 // Crear jugador vinculado a un equipo en especifico
-async function CreatePlayer(player, TeamName) {
+async function CreatePlayer(player, TeamName = 'Reclutas Libres') {
     TeamName = TeamName.toLowerCase()
     let promise = new Promise((resolve, reject) => {
         // Buscar jugador, si existe salta error pero si no existe procede a crearlo
@@ -65,16 +65,17 @@ async function CreatePlayer(player, TeamName) {
 }
 
 // Crear una tabla de Ranking
-async function CreateRank(TeamName, game = 0) {
+async function CreateRank({TeamName, game = 0}) {
     let GameSlug = GamesData[game].slug
 
     TeamName = TeamName.toLowerCase()
+
     let promise = new Promise((resolve, reject) => {
         let Rank = `[{ "${GameSlug}" : []}]`
         Rank = JSON.parse(Rank)
         // Busca el Ranking del juego en concreto, si ya existe saltará error.
         Search.SearchRanking(TeamName, game)
-            .catch(() => reject('El ranking ya existe'))
+            .catch((err) => reject('El ranking ya existe: ' + err))
             .then(response => {
                 if(response == false) {
                     // Lee la lista de Rankings de ese equipo y la actualiza agregando el nuevo ranking
@@ -100,7 +101,7 @@ async function CreateRank(TeamName, game = 0) {
                         })
                         .catch(err => reject(err))
                 } else if (response == true) {
-                    reject('El ranking ya existe')
+                    reject('Error')
                 }
             })
 
