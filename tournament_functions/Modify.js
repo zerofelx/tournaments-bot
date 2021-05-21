@@ -1,5 +1,7 @@
 const fs = require('fs');
 const Get = require('./Get');
+const { SearchPlayer } = require('./Search');
+const GamesData = require('../data/games.json');
 
 // Agrega puntos a los jugadores para el ranking
 async function AddPlayerPoints({Player, Team = 'reclutas libres', Game, Tops = 0, Kills = 0, Points = 0}) {
@@ -37,7 +39,46 @@ async function AddPlayersNumbers({TeamName = '', Number = 0}) {
     })
 }
 
+async function AddPlayerToRankTable({TeamName = '', PlayerName, Game = 0}) {
+    TeamName = TeamName.toLowerCase()
+    Game = GamesData[Game].slug
+
+    let promise = new Promise((resolve, reject) => {
+        SearchPlayer(PlayerName, TeamName)
+        .then(() => {
+            let rankPath = `./data/teams/${TeamName}/rank.json`;
+            let rankFile = fs.readFileSync(rankPath);
+            rankFile = JSON.parse(rankFile)
+
+            let Rank = rankFile[0][Game]
+            let Crear = true
+
+            if(Rank == undefined) { reject('Este ranking no existe') }
+            for(p in Rank) {
+                if(Rank[p].Player == PlayerName) {
+                    Crear = false
+                }
+            }
+            if(Crear) {
+                Rank.push({
+                    Player: PlayerName,
+                    Kills: 0,
+                    Tops: 0,
+                    Points: 0
+                })
+                let data = JSON.stringify(rankFile)
+                fs.writeFileSync(rankPath, data)
+                resolve('Jugador agregado')
+            } else if(!Crear) {
+                reject('El jugador ya existe en este ranking')
+            }
+        })
+    })
+    return await promise
+}
+
 module.exports = {
     AddPlayerPoints,
-    AddPlayersNumbers
+    AddPlayersNumbers,
+    AddPlayerToRankTable
 }

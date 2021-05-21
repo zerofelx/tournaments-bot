@@ -1,5 +1,4 @@
 const fs = require('fs')
-const Create = require('./Create')
 const Scheme = require('./Schemes')
 const GamesData = require('../data/games.json');
 
@@ -58,7 +57,8 @@ async function GetRankingData({TeamName, Game = 0}) {
 
                 for(i in Rank) {
                     if(Rank[i][GameSlug] != undefined) {
-                        let Table = new Scheme.RankTable(`${TeamName}`, GameTitle, Rank[i][GameSlug])
+                        let Ranking = Rank[i][GameSlug].sort((a, b) => b.Points - a.Points)
+                        let Table = new Scheme.RankTable(`${TeamName}`, GameTitle, Ranking)
                         resolve(Table)
                     }
                 }

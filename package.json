@@ -20,6 +20,8 @@
     "discord.js": "^12.5.3",
     "discord.js-prompts": "^3.0.0",
     "dotenv": "^9.0.2",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "markdown-table": "^3.0.0",
+    "repeat-string": "^1.6.1"
   }
 }

@@ -55,7 +55,7 @@ async function SearchPlayer(PlayerName, TeamName) {
             .then(players => {
                 for(P in players) {
                     if(players[P].Username == PlayerName) {
-                        resolve(`El jugador '${PlayerName}' ya existe`)
+                        resolve(`El jugador '${PlayerName}' ya existe en este equipo`)
                     }
                 }
                 reject(`El jugador ${PlayerName} no existe`);

@@ -93,7 +93,6 @@ async function CreateRank({TeamName, game = 0}) {
                                     Points: 0
                                 })
                             }
-                            Rank.sort((a, b) => b.Points - a.Points)
     
                             RankingsJSON.push(Rank[0])
                             fs.writeFileSync(`./data/teams/${TeamName}/rank.json`, JSON.stringify(RankingsJSON))
@@ -101,7 +100,7 @@ async function CreateRank({TeamName, game = 0}) {
                         })
                         .catch(err => reject(err))
                 } else if (response == true) {
-                    reject('Error')
+                    reject('El ranking ya existe')
                 }
             })
 
