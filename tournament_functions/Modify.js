@@ -77,6 +77,52 @@ async function AddPlayerToRankTable({TeamName = '', PlayerName, Game = 0}) {
     return await promise
 }
 
+async function AddPlayerPoints({TeamName = 'Reclutas Libres', Username = 'VoidPlayer', Game = 0, Kills = 0, Posicion = 0, Puntos = 0}) {
+    let TeamSlug = TeamName.toLowerCase()
+    let promise = new Promise((resolve, reject) => {
+        Get.GetRankingData({ TeamName: TeamName, Game: Game })
+        .then(() => {
+            const Points = {
+                1:30,   2:22,   3:19,
+                4:16,   5:14,   6:12,
+                7:10,   8:8,    9:7,
+                10:6,   11:5,   12:4,
+                13:3,   14:2,   15:1
+            }
+            let puntuacion = 0;
+            if(Points[Posicion] != undefined) {
+                puntuacion = Points[Posicion]
+            }
+            puntuacion += parseInt(Kills) + parseInt(Puntos)
+
+            const path = `./data/teams/${TeamSlug}/rank.json`
+            let file = fs.readFileSync(path)
+            file = JSON.parse(file)
+            
+            for(r in file) {
+                if(file[r][GamesData[Game].slug]) {
+                    let edit = file[r][GamesData[Game].slug]
+                    for(p in edit) {
+                        if(edit[p].Player == Username) {
+                            edit[p].Kills += parseInt(Kills);
+                            if(Posicion == 1) {
+                                edit[p].Tops += 1
+                            };
+                            edit[p].Points += puntuacion
+
+                            file = JSON.stringify(file);
+                            fs.writeFileSync(path, file)
+                            resolve(`Agregado`)
+                        }
+                    }
+                }
+            }
+        })
+        .catch(err => reject(err))
+    })
+    return await promise
+}
+
 module.exports = {
     AddPlayerPoints,
     AddPlayersNumbers,

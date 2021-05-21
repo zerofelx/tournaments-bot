@@ -4,7 +4,8 @@
   "description": "Bot para crear torneos de juegos en general",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js --ignore 'data/'"
   },
   "repository": {
     "type": "git",

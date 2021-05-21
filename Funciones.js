@@ -3,6 +3,7 @@ const Get = require('./tournament_functions/Get');
 const Modify = require('./tournament_functions/Modify');
 const Scheme = require('./tournament_functions/Schemes');
 const Search = require('./tournament_functions/Search');
+const GamesData = require('./data/games.json');
 const Discord = require('discord.js')
 
 
@@ -31,12 +32,20 @@ for(G in GamesFieldsData) {
 
 const Mensajes = {
     'Questions' : {
-        'GameQuestion': new Discord.MessageEmbed({ title: '¿De cuál juego?', color: PromptColor, fields: GamesFields }),
-        'GameAddPlayerQuestion': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'El jugador ¿De qué equipo es?', value: 'Responde con: #[Nombre del equipo]' } }),
-        'PointsType': new Discord.MessageEmbed({ color: PromptColor, fields: { name: "¿Qué deseas agregar a la tabla de puntuaciones?", value: 'a'}})
+        'AddPoints': {
+            'Team': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el equipo', value: 'Responde con #[Nombre del equipo] por favor.'} }),
+            'Points': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime las puntuaciones', value: '#[Cantidad de Kills] [El número del top]'} }),
+        },
+        'General': {
+            'GameQuestion': new Discord.MessageEmbed({ title: '¿De cuál juego?', color: PromptColor, fields: GamesFields }),
+            'GameAddPlayerQuestion': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'El jugador ¿De qué equipo es?', value: 'Responde con: #[Nombre del equipo] por favor.' } }),
+            'PointsType': new Discord.MessageEmbed({ color: PromptColor, fields: { name: "¿Qué deseas agregar a la tabla de puntuaciones?", value: 'a'}})
+        }
     },
     'error' : {
         'CreateTeam': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'El equipo ya existe', value: 'Para ver los equipos que ya existen puedes usar el comando: !Mostrar equipos'}}),
+        'SearchingTeam': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Este equipo no existe', value: 'Si deseas crearlo puedes usar el comando: !Crear equipo [Nombre del equipo]' } }),
+        'SearchingPlayer': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Este jugador no existe en este equipo', value: 'Si deseas crearlo puedes usar el comando: !Crear jugador [Nombre del jugador] [Nombre del equipo]' } }),
         'RankShowErrMessage': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'El ranking de este juego aún no ha sido creado', value: 'Si deseas crearlo puedes usar el comando: !Crear ranking [Nombre del equipo]' } }),
         'RankErrMessage': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'El ranking de este juego ya existe', value: 'Si deseas verlo puedes usar el comando: !Mostrar ranking [Nombre del equipo]' } })
     }
@@ -83,7 +92,7 @@ const Crear = {
 
     Ranking({args, m}) {
         if(args[2] != undefined) {
-            Auxiliar.question({ question: Mensajes.Questions.GameQuestion, m: m }).then(data => {
+            Auxiliar.question({ question: Mensajes.Questions.General.GameQuestion, m: m }).then(data => {
                 let Game = data[1]
                 let TeamName = Auxiliar['format-teamName']({array: args, oWords: 2});
     
@@ -93,7 +102,6 @@ const Crear = {
                     .then(message => m.channel.send("Ranking creado - "+ message))
                     .catch(err => {
                         m.channel.send(Mensajes.error.RankErrMessage)
-                        console.log(args)
                     })
             })
         }
@@ -112,7 +120,7 @@ const Agregar = {
         let Username = args[3]
 
         if(Username != undefined) {
-            Auxiliar.question({ m: m, question: Mensajes.Questions.GameAddPlayerQuestion})
+            Auxiliar.question({ m: m, question: Mensajes.Questions.General.GameAddPlayerQuestion})
             .then(data => {
                 let TeamName = data;
                 TeamName = TeamName.replace('#', '')
@@ -120,7 +128,7 @@ const Agregar = {
 
                 Search.SearchPlayer(Username, TeamSlug)
                 .then(() => {
-                    Auxiliar.question({ m: m, question: Mensajes.Questions.GameQuestion})
+                    Auxiliar.question({ m: m, question: Mensajes.Questions.General.GameQuestion})
                     .then(data2 => {
                         let Game = data2[1]
 
@@ -136,8 +144,53 @@ const Agregar = {
         }
     },
 
-    Puntuacion() {
+    Puntuacion({args, m}) {
+        let Username = args[3]
 
+        if(Username != undefined) {
+            Auxiliar.question({ m:m, question: Mensajes.Questions.AddPoints.Team})
+            .then(data => {
+                let TeamName = data;
+                TeamName = TeamName.replace('#', '')
+                let TeamSlug = TeamName.toLowerCase()
+                TeamName = Auxiliar.Capitalize(TeamName)
+
+                Search.SearchTeam(TeamName)
+                .then(() => {
+                    Search.SearchPlayer(Username, TeamName)
+                    .then(() => {
+                        Auxiliar.question({ m:m, question: Mensajes.Questions.General.GameQuestion})
+                        .then(data2 => {
+                            let Game = data2[1]
+                            Auxiliar.question({ m:m, question: Mensajes.Questions.AddPoints.Points})
+                            .then(data3 => {
+                                
+                                let datos = data3.replace('#', '')
+                                datos = datos.split(' ')
+        
+                                const kills = datos[0];
+                                const top = datos[1];
+            
+                                Modify.AddPlayerPoints({ 
+                                    TeamName: TeamSlug, 
+                                    Username: Username,
+                                    Game: Game,
+                                    Kills: kills,
+                                    Posicion: top
+                                }).then(msg => {
+                                    m.channel.send(msg)
+                                })
+                            })
+                        })
+                    })
+                    .catch(() => {
+                        m.channel.send(Mensajes.error.SearchingPlayer)
+                    })
+                }).catch(() => {
+                    m.channel.send(Mensajes.error.SearchingTeam)
+                })
+            })
+        }
     }
 
 }
@@ -152,13 +205,12 @@ const Agregar = {
 const Mostrar = {
     Ranking({args, m}) {
         if(args[2] != undefined) {
-            Auxiliar.question({ m: m, question: Mensajes.Questions.GameQuestion })
+            Auxiliar.question({ m: m, question: Mensajes.Questions.General.GameQuestion })
             .then(data => {
-                console.log(data)
                 let Game = data[1];
                 let TeamName = Auxiliar['format-teamName']({array: args, oWords: 2})
-                
-                console.log(args[2])
+                TeamName = Auxiliar['Capitalize'](TeamName);
+
                 Get.GetRankingData({ TeamName: TeamName, Game: Game})
                     .then(RankTable => {
                         if(RankTable.Rank != undefined) {
@@ -176,12 +228,10 @@ const Mostrar = {
                         }
                     })
                     .catch(err => { 
-                        console.log("ERROR: ", err)
-                        
                         m.channel.send(Mensajes.error.RankShowErrMessage)
                     })
             })
-            .catch(err => console.log( err ))
+            .catch(err => m.channel.send( err ))
         }
     },
     
@@ -208,7 +258,8 @@ const Mostrar = {
 //
 const Auxiliar = {
     "format-teamName": FormatTeamName,
-    "question": Prompt
+    "question": Prompt,
+    'Capitalize': Capitalize
 }
 
 function calcular({args, m}) {
@@ -249,8 +300,11 @@ function FormatTeamName({array, oWords = 2}) {
     return TeamName
 }
 
+function Capitalize(str = '') {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 async function Prompt({m, question}) {
-    console.log('Entrando al prompt')
     let promise = new Promise((resolve, reject) => {
         const filter = m => m.content.includes('#')
     

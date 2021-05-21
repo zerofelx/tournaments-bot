@@ -32,7 +32,8 @@ const Commands = {
     'ranking' : {
         'agregar' : {
             'jugador' : Agregar.JugadorARankTable,
-            'puntuacion': Agregar.Puntuacion
+            'puntuacion': Agregar.Puntuacion,
+            'puntuación': Agregar.Puntuacion
         }
     }
 }
@@ -68,7 +69,7 @@ client.on('message', m => {
             try {
                 Commands[command][second][third]({args: args, m: m})
             } catch {
-                console.log("Error de comando?: " + command + subcommand + third)
+                console.log("Error de comando?: " + command + second + third)
             }
         }
     } else if(m.content.substring(0, 2) == '--') {
