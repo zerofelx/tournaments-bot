@@ -1,5 +1,5 @@
 const fs = require('fs');
-const shortId = require('shortid');
+const nanoid = require('nanoid').nanoid;
 const Get = require('./Get')
 const Search = require('./Search')
 
@@ -8,7 +8,7 @@ async function NewBracket({ Game = 0, Participants = [], type = 'individual'}) {
         Get.ActualBracket({ type: type })
         .then(data => {
             if(Participants.length %2 == 0){
-                const ID = shortId.generate();
+                const ID = nanoid(6);
                 let bracket = `{"${ID}": {}}`
                 bracket = JSON.parse(bracket)
 
