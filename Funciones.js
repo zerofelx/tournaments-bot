@@ -51,9 +51,9 @@ const Mensajes = {
         'GeneralError': (message) => {return new Discord.MessageEmbed({color: ErrorColor, fields: { name: 'Error:', value: message }})},
         'CreateTeam': new Discord.MessageEmbed({ color: ErrorColor, fields: { name: 'El equipo ya existe', value: 'Para ver los equipos que ya existen puedes usar el comando: !Mostrar equipos'}}),
         'SearchingTeam': new Discord.MessageEmbed({ color: ErrorColor, fields: { name: 'Este equipo no existe', value: 'Si deseas crearlo puedes usar el comando: !Crear equipo [Nombre del equipo]' } }),
-        'SearchingPlayer': new Discord.MessageEmbed({ color: ErrorColor, fields: { name: 'Este jugador no existe en este equipo', value: 'Si deseas crearlo puedes usar el comando: !Crear jugador [Nombre del jugador] [Nombre del equipo]' } }),
-        'RankShowErrMessage': new Discord.MessageEmbed({ color: ErrorColor, fields: { name: 'El ranking de este juego aún no ha sido creado', value: 'Si deseas crearlo puedes usar el comando: !Crear ranking [Nombre del equipo]' } }),
-        'RankErrMessage': new Discord.MessageEmbed({ color: ErrorColor, fields: { name: 'El ranking de este juego ya existe', value: 'Si deseas verlo puedes usar el comando: !Mostrar ranking [Nombre del equipo]' } })
+        'SearchingPlayer': new Discord.MessageEmbed({ color: ErrorColor, fields: { name: 'Este jugador no existe en este equipo', value: 'Si deseas crearlo puedes usar el comando: !Crear jugador [Nombre del jugador]' } }),
+        'RankShowErrMessage': new Discord.MessageEmbed({ color: ErrorColor, fields: { name: 'El ranking de este juego aún no ha sido creado', value: 'Si deseas crearlo puedes usar el comando: !Crear ranking' } }),
+        'RankErrMessage': new Discord.MessageEmbed({ color: ErrorColor, fields: { name: 'El ranking de este juego ya existe', value: 'Si deseas verlo puedes usar el comando: !Mostrar ranking' } })
     }
 }
 //
