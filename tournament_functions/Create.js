@@ -65,40 +65,60 @@ async function CreatePlayer(player, TeamName = 'Reclutas Libres') {
 }
 
 // Crear una tabla de Ranking
-async function CreateRank({TeamName, game = 0}) {
+async function CreateRank({TeamName = '', game = 0, Type = 'individual'}) {
+
     let GameSlug = GamesData[game].slug
+    const individual = (Type == 'individual')
+    
+    let promise = new Promise(async (resolve, reject) => {
+        let Rank = `[{ "${GameSlug}" : []}]`;
+        let filePath = '';
+        Rank = JSON.parse(Rank);
+        
+        if(individual) {
+            TeamName = TeamName.toLowerCase()
+            filePath = `./data/teams/${TeamName}/rank.json`;
+            await Search.SearchTeam(TeamName).catch((err) => reject(err))
+        }
+        if (!individual) {
+            filePath = './data/teams/ranking.json'
+        }
 
-    TeamName = TeamName.toLowerCase()
-
-    let promise = new Promise((resolve, reject) => {
-        let Rank = `[{ "${GameSlug}" : []}]`
-        Rank = JSON.parse(Rank)
         // Busca el Ranking del juego en concreto, si ya existe saltará error.
-        Search.SearchRanking(TeamName, game)
-            .catch((err) => reject('El ranking ya existe: ' + err))
+        
+        Search.SearchRanking({TeamName: TeamName, Game: game, Type: Type})
+            .catch((err) => reject(err))
             .then(response => {
                 if(response == false) {
                     // Lee la lista de Rankings de ese equipo y la actualiza agregando el nuevo ranking
-                    let RankingsJSON = fs.readFileSync(`./data/teams/${TeamName}/rank.json`)
+                    let RankingsJSON = fs.readFileSync(filePath)
                     RankingsJSON = JSON.parse(RankingsJSON)
-                    // Obtiene la lista de jugadores de un equipo para agregarlos al ranking
-                    Get.GetTeamPlayers(TeamName)
-                        .then(players => {
-                            for(var p in players) {
-                                let Player = players[p]
-                                Rank[0][GameSlug].push({
-                                    Player: Player.Username,
-                                    Kills: 0,
-                                    Tops: 0,
-                                    Points: 0
-                                })
-                            }
-    
-                            RankingsJSON.push(Rank[0])
-                            fs.writeFileSync(`./data/teams/${TeamName}/rank.json`, JSON.stringify(RankingsJSON))
-                            resolve('Ranking creado')
-                        })
-                        .catch(err => reject(err))
+
+                    if(individual) {
+                        // Obtiene la lista de jugadores de un equipo para agregarlos al ranking
+                        Get.GetTeamPlayers(TeamName)
+                            .then(players => {
+                                for(var p in players) {
+                                    let Player = players[p]
+                                    Rank[0][GameSlug].push({
+                                        Player: Player.Username,
+                                        Kills: 0,
+                                        Tops: 0,
+                                        Points: 0
+                                    })
+                                }
+        
+                                RankingsJSON.push(Rank[0])
+                                fs.writeFileSync(filePath, JSON.stringify(RankingsJSON))
+                                resolve('Ranking individual creado')
+                            })
+                            .catch(err => reject(err))
+                    }
+                    if(!individual) {
+                        RankingsJSON.push(Rank[0]);
+                        fs.writeFileSync(filePath, JSON.stringify(RankingsJSON));
+                        resolve('Ranking grupal creado')
+                    }
                 } else if (response == true) {
                     reject('El ranking ya existe')
                 }

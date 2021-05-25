@@ -33,7 +33,8 @@ const Commands = {
         'agregar' : {
             'jugador' : Agregar.JugadorARankTable,
             'puntuacion': Agregar.Puntuacion,
-            'puntuación': Agregar.Puntuacion
+            'puntuación': Agregar.Puntuacion,
+            'equipo' : Agregar.EquipoARankTable
         }
     }
 }

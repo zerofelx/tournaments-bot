@@ -31,8 +31,7 @@ async function GetTeamPlayers(TeamName) {
                 let filedata = JSON.parse(data)
                 resolve(filedata)
             } catch {
-                CreateFirstPlayer(TeamName)
-                resolve(GetTeamPlayers)
+                reject('No existen jugadores en este equipo')
             }
         })
     })
@@ -40,26 +39,41 @@ async function GetTeamPlayers(TeamName) {
     return await promise
 }
 
-// Obtener los datos de un Ranking
-async function GetRankingData({TeamName, Game = 0}) {
+// Obtener los datos de un Ranking Individual
+async function GetRankingData({TeamName = '', Game = 0, Type = 'individual'}) {
+    const individual = (Type == 'individual');
     TeamSlug = TeamName.toLowerCase()
 
     let GameSlug = GamesData[Game].slug
     let GameTitle = GamesData[Game].title
 
     let promise = new Promise((resolve, reject) => {
-        fs.readFile(`./data/teams/${TeamSlug}/rank.json`, (err, data) => {
+        let filePath = '';
+        if(individual) {
+            filePath = `./data/teams/${TeamSlug}/rank.json`
+        }
+        if(!individual) {
+            filePath = './data/teams/ranking.json'
+        }
+
+        fs.readFile(filePath, (err, data) => {
             if(err) { reject(err) }
             try {
                 let Rank = JSON.parse(data)
-
                 if( Rank == 0) { reject(('Ranking vacío 1'), Rank) }
 
                 for(i in Rank) {
                     if(Rank[i][GameSlug] != undefined) {
                         let Ranking = Rank[i][GameSlug].sort((a, b) => b.Points - a.Points)
-                        let Table = new Scheme.RankTable(`${TeamName}`, GameTitle, Ranking)
-                        resolve(Table)
+                        
+                        if(individual) {
+                            let Table = new Scheme.RankTable(`${TeamName}`, GameTitle, Ranking)
+                            resolve(Table)
+                        }
+                        if(!individual) {
+                            let Table = new Scheme.RankTable('Por equipos', GameTitle, Ranking)
+                            resolve(Table)
+                        }
                     }
                 }
                 reject('No existe')

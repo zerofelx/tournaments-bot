@@ -9,7 +9,7 @@ async function SearchTeam(TeamName) {
         Get.GetTeamsData('teams')
             .then(teams => {
                 for(T in teams) {
-                    if(teams[T].TeamName == TeamName) {
+                    if(teams[T].TeamName.toLowerCase() == TeamName.toLowerCase()) {
                         resolve(`El team '${TeamName}' existe.`)
                     }
                 }
@@ -21,15 +21,29 @@ async function SearchTeam(TeamName) {
 }
 
 // Buscar el raking de un equipo
-async function SearchRanking(TeamName, Game = 0) {
-    TeamName = TeamName.toLowerCase()
+async function SearchRanking({TeamName = '', Game = 0, Type = 'individual'}) {
     let GameSlug = GamesData[Game].slug
+    const individual = (Type == 'individual')
 
     let promise = new Promise((resolve, reject) => {
-        fs.readFile(`./data/teams/${TeamName}/rank.json`, (err, data) => {
+        let filePath = '';
+        if(individual) {
+            TeamName = TeamName.toLowerCase()
+            filePath = `./data/teams/${TeamName}/rank.json`;
+        }
+        if (!individual) {
+            filePath = './data/teams/ranking.json'
+        }
+        fs.readFile(filePath, (err, data) => {
             if(err) { reject(err) }
             try {
-                let Rank = JSON.parse(data)
+                let Rank = []
+                try {
+                    Rank = JSON.parse(data)
+                } catch {
+                    Rank = []
+                }
+
                 if( Rank == 0) { resolve(false) }
 
                 for(i = 0; i < Rank.length; i++) {
@@ -50,6 +64,7 @@ async function SearchRanking(TeamName, Game = 0) {
 
 // Buscar un jugador
 async function SearchPlayer(PlayerName, TeamName) {
+    TeamName = TeamName.toLowerCase()
     let promise = new Promise((resolve, reject) => {
         Get.GetTeamPlayers(TeamName)
             .then(players => {
