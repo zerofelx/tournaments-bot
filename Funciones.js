@@ -251,7 +251,6 @@ const Mostrar = {
 
             let Game = data;
 
-            console.log(type)
             Get.GetRankingData({ TeamName: TeamName, Game: Game, Type: type})
                 .then(RankTable => {
                     if(RankTable.Rank != undefined) {
@@ -261,8 +260,11 @@ const Mostrar = {
                             for(i in RankTable.Rank) {
                                 table += `#${parseInt(i)+1} ${RankTable.Rank[i].Player}:         ${RankTable.Rank[i].Kills} Kills    |   ${RankTable.Rank[i].Tops} Tops    |   ${RankTable.Rank[i].Points} Puntos\n`
                             }
-
-                            await m.channel.send(table)
+                            if(RankTable.Rank.length != 0) {
+                                await m.channel.send(table)
+                            } else {
+                                await m.channel.send(Mensajes.error.GeneralError('Aún no hay ningún participante en este ranking'))
+                            }
                         })
                     } else {
                         m.channel.send('No existe el ranking de ese juego.')
