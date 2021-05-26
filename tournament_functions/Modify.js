@@ -155,9 +155,12 @@ async function AddPlayerPoints({TeamName = 'Reclutas Libres', Type = 'individual
                     for(p in edit) {
                         if(edit[p].Player == Participant) {
                             edit[p].Kills += parseInt(Kills);
-                            if(Posicion == 1) {
-                                edit[p].Tops += 1
-                            };
+                            if(edit[p].Tops == 0) {
+                                edit[p].Tops = ''
+                                edit[p].Tops += Posicion
+                            } else {
+                                edit[p].Tops += ", " + Posicion
+                            }
                             edit[p].Points += puntuacion
 
                             file = JSON.stringify(file);

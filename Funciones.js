@@ -258,7 +258,7 @@ const Mostrar = {
                         .then(async function () {
                             let table = ''
                             for(i in RankTable.Rank) {
-                                table += `#${parseInt(i)+1} ${RankTable.Rank[i].Player}:         ${RankTable.Rank[i].Kills} Kills    |   ${RankTable.Rank[i].Tops} Tops    |   ${RankTable.Rank[i].Points} Puntos\n`
+                                table += `#${parseInt(i)+1} ${RankTable.Rank[i].Player}:         ${RankTable.Rank[i].Kills} Kills    |   Tops: ${RankTable.Rank[i].Tops}    |   ${RankTable.Rank[i].Points} Puntos\n`
                             }
                             if(RankTable.Rank.length != 0) {
                                 await m.channel.send(table)
