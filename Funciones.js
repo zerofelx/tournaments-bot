@@ -1,9 +1,9 @@
+const fs = require('fs')
 const Create = require('./tournament_functions/Create');
 const Get = require('./tournament_functions/Get');
 const Modify = require('./tournament_functions/Modify');
 const Scheme = require('./tournament_functions/Schemes');
 const Search = require('./tournament_functions/Search');
-const GamesData = require('./data/games.json');
 const Discord = require('discord.js')
 
 
@@ -349,7 +349,8 @@ function Capitalize(str = '') {
 
 function fixTeamName({TeamName = ''}) {
     TeamName = TeamName.toLowerCase();
-    let TeamsData = require('./data/teams/index.json');
+    let TeamsData = fs.readFileSync('./data/teams/index.json');
+    TeamsData = JSON.parse(TeamsData)
 
     for(t in TeamsData) {
         if(TeamsData[t].Slug == TeamName) {
