@@ -65,13 +65,20 @@ async function CreatePlayer(player, TeamName = 'Reclutas Libres') {
 }
 
 // Crear una tabla de Ranking
-async function CreateRank({TeamName = '', game = 0, Type = 'individual'}) {
+async function CreateRank({TeamName = '', game = 0, Type = 'individual', Title = ''}) {
 
     let GameSlug = GamesData[game].slug
     const individual = (Type == 'individual')
     
     let promise = new Promise(async (resolve, reject) => {
-        let Rank = `[{ "${GameSlug}" : []}]`;
+        let Rank = '';
+        if(individual) {
+            Rank = `[{ "${GameSlug}" : []}]`;
+        }
+        if(!individual) {
+            Rank = `{"${Title.toLowerCase()}": ["${Title}"]}`;
+        }
+
         let filePath = '';
         Rank = JSON.parse(Rank);
         
@@ -82,11 +89,12 @@ async function CreateRank({TeamName = '', game = 0, Type = 'individual'}) {
         }
         if (!individual) {
             filePath = './data/teams/ranking.json'
+            console.log(filePath)
         }
 
         // Busca el Ranking del juego en concreto, si ya existe saltará error.
         
-        Search.SearchRanking({TeamName: TeamName, Game: game, Type: Type})
+        Search.SearchRanking({TeamName: TeamName, Game: game, Type: Type, Title: Title})
             .catch((err) => reject(err))
             .then(response => {
                 if(response == false) {
@@ -115,8 +123,25 @@ async function CreateRank({TeamName = '', game = 0, Type = 'individual'}) {
                             .catch(err => reject(err))
                     }
                     if(!individual) {
-                        RankingsJSON.push(Rank[0]);
+                        for(r in RankingsJSON) {
+                            if(RankingsJSON[r][GameSlug]) {
+                                for(i in RankingsJSON[r][GameSlug]) {
+                                    if(RankingsJSON[r][GameSlug][i][0] == Title.toLowerCase()) {
+                                        reject('Ya existe un ranking con este título.')
+                                    }
+                                    RankingsJSON[r][GameSlug].push(Rank)
+                                }
+                            } else {
+                                Rank = `{"${GameSlug}":[{"${Title.toLowerCase()}":["${Title}"]}]}`;
+                                RankingsJSON.push(JSON.parse(Rank))
+                            }
+                        }
+                        if(RankingsJSON == 0) {
+                            Rank = `{"${GameSlug}":[{"${Title.toLowerCase()}":["${Title}"]}]}`;
+                            RankingsJSON.push(JSON.parse(Rank))
+                        }
                         fs.writeFileSync(filePath, JSON.stringify(RankingsJSON));
+
                         resolve('Ranking grupal creado')
                     }
                 } else if (response == true) {

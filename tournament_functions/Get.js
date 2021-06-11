@@ -40,12 +40,13 @@ async function GetTeamPlayers(TeamName) {
 }
 
 // Obtener los datos de un Ranking Individual
-async function GetRankingData({TeamName = '', Game = 0, Type = 'individual'}) {
+async function GetRankingData({TeamName = '', Game = 0, Type = 'individual', Title = ''}) {
     const individual = (Type == 'individual');
     TeamSlug = TeamName.toLowerCase()
 
     let GameSlug = GamesData[Game].slug
     let GameTitle = GamesData[Game].title
+    let TitleSlug = ''
 
     let promise = new Promise((resolve, reject) => {
         let filePath = '';
@@ -53,6 +54,7 @@ async function GetRankingData({TeamName = '', Game = 0, Type = 'individual'}) {
             filePath = `./data/teams/${TeamSlug}/rank.json`
         }
         if(!individual) {
+            TitleSlug = Title.toLowerCase()
             filePath = './data/teams/ranking.json'
         }
 
@@ -64,15 +66,22 @@ async function GetRankingData({TeamName = '', Game = 0, Type = 'individual'}) {
 
                 for(i in Rank) {
                     if(Rank[i][GameSlug] != undefined) {
-                        let Ranking = Rank[i][GameSlug].sort((a, b) => b.Points - a.Points)
                         
                         if(individual) {
+                            let Ranking = Rank[i][GameSlug].sort((a, b) => b.Points - a.Points)
                             let Table = new Scheme.RankTable(`${TeamName}`, GameTitle, Ranking)
                             resolve(Table)
                         }
                         if(!individual) {
-                            let Table = new Scheme.RankTable('Por equipos', GameTitle, Ranking)
-                            resolve(Table)
+                            let rankings = Rank[i][GameSlug]
+                            for(r in rankings) {
+                                if(rankings[r][TitleSlug]) {
+                                    let Ranking = rankings[r][TitleSlug].sort((a, b) => b.Points - a.Points)
+                                    let Table = new Scheme.TeamRankTable('Por equipos', Title, GameTitle, Ranking)
+    
+                                    resolve(Table)
+                                }
+                            }
                         }
                     }
                 }

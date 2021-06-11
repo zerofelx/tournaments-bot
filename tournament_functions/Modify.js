@@ -3,21 +3,6 @@ const Get = require('./Get');
 const { SearchPlayer, SearchTeam } = require('./Search');
 const GamesData = require('../data/games.json');
 
-// Agrega puntos a los jugadores para el ranking
-async function AddPlayerPoints({Player, Team = 'reclutas libres', Game, Tops = 0, Kills = 0, Points = 0}) {
-    Team = Team.toLowerCase()
-    let promise = new Promise((resolve, reject) => {
-        Get.GetRankingData(Team, Game)
-            .then(response => {
-                console.log(response)
-            })
-            .catch(err => reject(err))
-    })
-
-    return await promise
-}
-
-
 // Obtiene la lista del índice para actualizar el equipo en concreto sumándole el número de jugadores que se le indique
 async function AddPlayersNumbers({TeamName = '', Number = 0}) {
     TeamName = TeamName.toLowerCase()
@@ -40,10 +25,10 @@ async function AddPlayersNumbers({TeamName = '', Number = 0}) {
     return await promise
 }
 
-async function AddPlayerToRankTable({TeamName = '', PlayerName = '', Game = 0, Type = 'individual'}) {
+async function AddPlayerToRankTable({TeamName = '', PlayerName = '', Game = 0, Type = 'individual', Title = ''}) {
     const individual = (Type == 'individual')
     const Participant = individual ? PlayerName : TeamName
-    const rankPath = individual ? `./data/teams/${TeamName}/rank.json` : `./data/teams/ranking.json`;
+    const rankPath = individual ? `./data/teams/${TeamName.toLowerCase()}/rank.json` : `./data/teams/ranking.json`;
     ParticipantSlug = Participant.toLowerCase()
     Game = GamesData[Game].slug
     
@@ -82,23 +67,38 @@ async function AddPlayerToRankTable({TeamName = '', PlayerName = '', Game = 0, T
             SearchTeam(TeamName)
             .then(() => {
                 let rankFile = fs.readFileSync(rankPath);
+                TitleSlug = Title.toLowerCase()
                 rankFile = JSON.parse(rankFile)
     
                 let Rank = ''
                 for(r in rankFile) {
-                    if(rankFile[r][Game]) {
-                        Rank = rankFile[r][Game]
+                    for(i in rankFile[r][Game]) {
+                        if(rankFile[r][Game][i][TitleSlug]) {
+                            Rank = rankFile[r][Game][i][TitleSlug]
+                            for(p = 1; p < Rank.length; p++) {
+                                if(Rank[p].Player.toLowerCase() == Participant.toLowerCase()) {
+                                    reject('El jugador ya existe en el ranking')
+                                    return
+                                }
+                            }
+                        }
                     }
                 }
 
                 let Crear = true
     
                 if(Rank == undefined) { reject('El ranking no existe') }
-                for(p in Rank) {
-                    if(Rank[p].Player.toLowerCase() == ParticipantSlug) {
-                        Crear = false
+                try {
+                    for(p in Rank) {
+                        if(Rank[p].Player.toLowerCase() == ParticipantSlug) {
+                            Crear = false
+                        }
                     }
                 }
+                catch {
+                    Crear = true
+                }
+
                 if(Crear) {
                     Rank.push({
                         Player: Participant,
@@ -119,11 +119,17 @@ async function AddPlayerToRankTable({TeamName = '', PlayerName = '', Game = 0, T
     return await promise
 }
 
-async function AddPlayerPoints({TeamName = 'Reclutas Libres', Type = 'individual', Participant = 'VoidPlayer', Game = 0, Kills = 0, Posicion = 0, Puntos = 0}) {
+async function AddPlayerPoints({
+    TeamName = 'Reclutas Libres', 
+    Type = 'individual', 
+    Participant = 'VoidPlayer', 
+    Game = 0, Kills = 0, Posicion = 0, Puntos = 0,
+    Title = ''}) 
+    {
     const individual = (Type == 'individual');
     let TeamSlug = TeamName.toLowerCase()
     let promise = new Promise((resolve, reject) => {
-        Get.GetRankingData({ TeamName: TeamName, Game: Game, Type: Type })
+        Get.GetRankingData({ TeamName: TeamName, Game: Game, Type: Type, Title: Title })
         .then(() => {
             const Points = {
                 1:30,   2:22,   3:19,
@@ -143,6 +149,7 @@ async function AddPlayerPoints({TeamName = 'Reclutas Libres', Type = 'individual
                 filePath = `./data/teams/${TeamSlug}/rank.json`
             }
             if(!individual) {
+                Title = Title.toLowerCase();
                 filePath = './data/teams/ranking.json'
             }
 
@@ -151,25 +158,63 @@ async function AddPlayerPoints({TeamName = 'Reclutas Libres', Type = 'individual
             
             for(r in file) {
                 if(file[r][GamesData[Game].slug]) {
-                    let edit = file[r][GamesData[Game].slug]
-                    for(p in edit) {
-                        if(edit[p].Player == Participant) {
-                            edit[p].Kills += parseInt(Kills);
-                            if(edit[p].Tops == 0) {
-                                edit[p].Tops = ''
-                                edit[p].Tops += Posicion
-                            } else {
-                                edit[p].Tops += ", " + Posicion
-                            }
-                            edit[p].Points += puntuacion
+                    let edit = []
 
-                            file = JSON.stringify(file);
-                            fs.writeFileSync(filePath, file)
-                            resolve(`Agregado`)
+                    if(individual) {
+                        edit = file[r][GamesData[Game].slug]
+                    }
+                    if(!individual) {
+                        let rankings = file[r][GamesData[Game].slug]
+                        for(i in rankings) {
+                            if(rankings[i][Title]) {
+                                edit = file[r][GamesData[Game].slug][i][Title]
+                            }
                         }
                     }
+
+                    let MakeChange = false
+                    let index = 0
+
+                    if(individual) {
+                        for(p in edit) {
+                            if(edit[p].Player == Participant) {
+                                MakeChange = true
+                                index = p
+                            }
+                        }
+                    }
+                    if(!individual) {
+                        for(p = 1; p < edit.length; p++) {
+                            if(edit[p].Player.toLowerCase() == Participant.toLowerCase()) {
+                                MakeChange = true
+                                index = p
+                            }
+                        }
+                    }
+                    if(!MakeChange) {
+                        reject('No se encontró este participante')
+                    }
+
+                    if(edit[index].Kills == 0) {
+                        edit[index].Kills = '',
+                        edit[index].Kills += Kills
+                    } else {
+                        edit[index].Kills += ', ' + Kills
+                    }
+
+                    if(edit[index].Tops == 0) {
+                        edit[index].Tops = ''
+                        edit[index].Tops += Posicion
+                    } else {
+                        edit[index].Tops += ", " + Posicion
+                    }
+                    edit[index].Points += puntuacion
+
+                    file = JSON.stringify(file);
+                    fs.writeFileSync(filePath, file)
+                    resolve(`Agregado`)
+                    }
                 }
-            }
         })
         .catch(err => reject(err))
     })

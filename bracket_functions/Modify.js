@@ -127,6 +127,7 @@ async function NextStage({ ID = '', type = 'individual'}) {
                         data.splice(b, 1);
                         let updateActual = JSON.stringify(data);
                         fs.writeFileSync(path, updateActual)
+                        resolve(addWinner)
                     }
 
                 } else {

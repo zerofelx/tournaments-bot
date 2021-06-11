@@ -4,6 +4,11 @@ const Get = require('./tournament_functions/Get');
 const Modify = require('./tournament_functions/Modify');
 const Scheme = require('./tournament_functions/Schemes');
 const Search = require('./tournament_functions/Search');
+const CreateBracket = require('./bracket_functions/Create.js')
+const GetBracket = require('./bracket_functions/Get.js')
+const ModifyBracket = require('./bracket_functions/Modify.js')
+const SearchBracket = require('./bracket_functions/Search.js')
+const GamesData = require('./data/games.json');
 const Discord = require('discord.js')
 
 
@@ -34,16 +39,21 @@ for(G in GamesFieldsData) {
 
 const Mensajes = {
     'Questions' : {
+        'custom' : (message) => {return new Discord.MessageEmbed({color: PromptColor, fields: { name: 'Información:', value: message }})},
         'AddPoints': {
             'Points': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime las puntuaciones', value: '#[Cantidad de Kills] [El número del top]'} }),
+            'BracketPoints': new Discord.MessageEmbed({ color: PromptColor, fields: { name: '¿Cuántos puntos deseas agregar?', value: 'Responde con #[Puntos]' }}),
         },
         'General': {
+            'sure': new Discord.MessageEmbed({ color: PromptColor, fields: { name: '¿Estás seguro de esta acción?', value: 'Responde con #[si] para continuar, en caso contrario no respondas nada.' }}),
+            'ID': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el ID', value: 'Responde con #[ID]' }}),
+            'title': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el título', value: 'Responde con #[Título]' }}),
+            'Participants': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el nombre de los participantes', value: 'Responde con #[Nombres de los participantes separados por comas]' }}),
             'Player': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el nombre del jugador', value: 'Responde con #[Nombre del jugador] por favor.'} }),
             'Team': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el equipo', value: 'Responde con #[Nombre del equipo] por favor.'} }),
             'GameQuestion': new Discord.MessageEmbed({ title: '¿De cuál juego?', color: PromptColor, fields: GamesFields }),
-            'type': new Discord.MessageEmbed({color: PromptColor, fields: { name: '¿Individual o en equipos?', value: '#1 para individual y #2 para equipos.' }}),
+            'type': new Discord.MessageEmbed({color: PromptColor, fields: { name: '¿Individual o en equipos?', value: 'Responde con #1 para individual y #2 para equipos.' }}),
             'GameAddPlayerQuestion': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'El jugador ¿De qué equipo es?', value: 'Responde con: #[Nombre del equipo] por favor.' } }),
-            'PointsType': new Discord.MessageEmbed({ color: PromptColor, fields: { name: "¿Qué deseas agregar a la tabla de puntuaciones?", value: 'a'}})
         }
     },
     'success': (message) => {return new Discord.MessageEmbed({ color: successColor, fields: { name: 'Hecho', value: message }})},
@@ -105,8 +115,9 @@ const Crear = {
             Auxiliar.question({ question: Mensajes.Questions.General.GameQuestion, m: m })
             .then(async data => {
                 const Type = (t == 1) ? 'individual' : 'teams';
-
+                
                 let Team = '';
+                let title = '';
                 
                 let Game = data
                 
@@ -116,17 +127,43 @@ const Crear = {
                         let team = data2;
                         return team
                     })
+                } else {
+                    title = await Auxiliar.question({ question: Mensajes.Questions.General.title, m:m })
+                    .then(title => { return title })
+
                 }
-                let conf = { game: Game, TeamName: Team, Type: Type}
                 
-                Create.CreateRank(conf)
-                .then(message => m.channel.send(Mensajes.success(message)))
-                .catch(err => {
-                    message = Mensajes.error.GeneralError(err)
-                    m.channel.send(message)
-                })
+                    let conf = { game: Game, TeamName: Team, Type: Type, Title: title}
+
+                    Create.CreateRank(conf)
+                    .then(message => m.channel.send(Mensajes.success(message)))
+                    .catch(err => {
+                        message = Mensajes.error.GeneralError(err)
+                        m.channel.send(message)
+                    })
             })
         })
+    },
+
+    Bracket({m}) {
+        Auxiliar.question({m:m, question: Mensajes.Questions.General.type})
+        .then(t => {
+            Auxiliar.question({m:m, question: Mensajes.Questions.General.GameQuestion})
+            .then(Game => {
+                Auxiliar.question({m:m, question: Mensajes.Questions.General.Participants})
+                .then(Participants => {
+                    const Type = (t == 1) ? 'individual' : 'teams';
+                    CreateBracket.NewBracket({Game: Game, Participants: Participants.split(', '), type: Type})
+                    .then(ID => {
+                        m.channel.send('ID: ' + ID)
+                    })
+                    .catch(err => m.channel.send(Mensajes.error.GeneralError(err)))
+                })
+                .catch(err => console.log(err))
+            })
+            .catch(err => console.log(err))
+        })
+        .catch(err => console.log(err))
     }
 }
 //
@@ -170,10 +207,13 @@ const Agregar = {
         .then(Team => {
             Auxiliar.question({ question: Mensajes.Questions.General.GameQuestion, m: m })
             .then(Game => {
-                let TeamName = Auxiliar.fixTeamName({TeamName: Team})
-                Modify.AddPlayerToRankTable({ TeamName: TeamName, Game: Game, Type : 'teams' })
-                .then((message) => { m.channel.send(Mensajes.success(message)) })
-                .catch(err => m.channel.send(Mensajes.error.GeneralError(err)))
+                Auxiliar.question({question: Mensajes.Questions.General.title, m: m })
+                .then(title => {
+                    let TeamName = Auxiliar.fixTeamName({TeamName: Team})
+                    Modify.AddPlayerToRankTable({ TeamName: TeamName, Game: Game, Type : 'teams' , Title: title})
+                    .then((message) => { m.channel.send(Mensajes.success(message)) })
+                    .catch(err => m.channel.send(Mensajes.error.GeneralError(err)))
+                })
             })
         })
     },
@@ -181,27 +221,38 @@ const Agregar = {
     Puntuacion({m}) {
         Auxiliar.question({m:m, question: Mensajes.Questions.General.type})
         .then(t => {
-            Auxiliar.question({m:m, question: Mensajes.Questions.General.GameQuestion})
-            .then(Game => {
-                const Type = (t == 1) ? 'individual' : 'teams';
-                Auxiliar.question({m:m, question: Mensajes.Questions.General.Team})
-                .then(team => {
-                    let TeamName = Auxiliar.fixTeamName({ TeamName: team });
-                    
+            Auxiliar.question({m:m, question: Mensajes.Questions.General.Team})
+            .then(team => {
+                Auxiliar.question({m:m, question: Mensajes.Questions.General.GameQuestion})
+                .then(Game => {
+                    const Type = (t == 1) ? 'individual' : 'teams';
+                    let TeamName = Auxiliar.fixTeamName({ 'TeamName': team });
+                    if(TeamName == false) {
+                        Auxiliar.question({m:m, question: Mensajes.error.GeneralError('No existe este equipo')})
+                        return
+                    }
                     Search.SearchTeam(TeamName)
                     .then(async () => {
                         let participant = ''
     
                         if(Type == 'individual') {
-                            participant = await Auxiliar.question({m:m, question: Mensajes.Questions.General.Player})
+                            await Auxiliar.question({m:m, question: Mensajes.Questions.General.Player})
                             .then(Username => {
                                 Search.SearchPlayer(Username, TeamName)
-                                .then(() => {return Username})
+                                .then(() => {participant = Username})
                                 .catch(err => m.channel.send(Mensajes.error.GeneralError(err)))
                             })
                         }
+
+                        let title = ''
                         if(Type == 'teams') {
-                            participant = Auxiliar.fixTeamName({ TeamName: team });
+                            await Auxiliar.question({m:m, question: Mensajes.Questions.General.title})
+                            .then(Title => {
+                                title = Title
+                            })
+                            await Search.SearchTeam(team)
+                            .then(() => { participant = team })
+                            .catch(err => console.log(err))
                         }
 
                         Auxiliar.question({m:m, question: Mensajes.Questions.AddPoints.Points})
@@ -210,17 +261,68 @@ const Agregar = {
                             const kills = puntos[0]
                             const top = puntos[1]
 
+                            console.log('Agregando puntos...')
+
                             Modify.AddPlayerPoints({
                                 'Game': Game,
                                 'Participant': participant,
                                 'Type': Type,
                                 'TeamName': TeamName,
                                 'Kills': kills,
-                                'Posicion': top
+                                'Posicion': top,
+                                'Title': title
                             }).then(msg => m.channel.send(Mensajes.success(msg)))
-                        })
+                        }) .catch(err => m.channel.send(Mensajes.error.GeneralError(err)))
                     })
                     .catch(err => m.channel.send(Mensajes.error.GeneralError(err))) 
+                })
+            })
+        })
+    },
+
+    BracketPuntuacion({m}) {
+        Auxiliar.question({m:m, question: Mensajes.Questions.General.type})
+        .then(t => {
+            Auxiliar.question({m:m, question: Mensajes.Questions.General.ID})
+            .then(async ID => {
+                const Type = (t == 1) ? 'individual' : 'teams';
+                let participant = ''
+                
+                if(Type == 'individual') {
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.Player})
+                    .then(player => participant = player)
+                }
+                if(Type == 'teams') {
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.Team})
+                    .then(Team => {
+                        Search.SearchTeam(Team)
+                        .then(participant = Team)
+                    })
+                }
+
+                Auxiliar.question({m:m, question: Mensajes.Questions.AddPoints.BracketPoints})
+                .then(points => {
+                    ModifyBracket.AddPoints({ID: ID, TeamName: participant, type: Type, Points: points})
+                    .then(msg => m.channel.send(Mensajes.success(msg)))
+                    .catch(err => m.channel.send(Mensajes.error.GeneralError(err)))
+                })
+            })
+        })
+    },
+
+    NetxStage({m}) {
+        Auxiliar.question({m:m, question: Mensajes.Questions.General.type})
+        .then(t => {
+            Auxiliar.question({m:m, question: Mensajes.Questions.General.ID})
+            .then(ID => {
+                Auxiliar.question({m:m, question: Mensajes.Questions.General.sure})
+                .then(sure => {
+                    const Type = (t == 1) ? 'individual' : 'teams';
+                    if(sure.toLowerCase() == 'si') {
+                        ModifyBracket.NextStage({ID: ID, type: Type})
+                        .then(Winner => console.log('Winner: ', Winner))
+                        .catch(err => m.channel.send(Mensajes.error.GeneralError(err)))
+                    }
                 })
             })
         })
@@ -236,45 +338,66 @@ const Agregar = {
 //      MOSTRAR:
 //
 const Mostrar = {
-    Ranking({args, m}) {
-        Auxiliar.question({ m: m, question: Mensajes.Questions.General.GameQuestion })
-        .then(async data => {
-            let TeamSlug = ''
-            let TeamName = ''
-            let type = 'teams'
+    Ranking({m}) {
+        Auxiliar.question({m: m, question: Mensajes.Questions.General.type})
+        .then(t => {
+            Auxiliar.question({ m: m, question: Mensajes.Questions.General.GameQuestion })
+            .then(async data => {
+                let TeamSlug = ''
+                let TeamName = ''
+                const Type = (t == 1) ? 'individual' : 'teams';
+    
+                if(Type == 'individual') {
+                    TeamSlug = await Auxiliar.question({ m:m, question: Mensajes.Questions.General.Team }).then(data2 => {return data2});
+                    TeamName = Auxiliar.fixTeamName({ TeamName: TeamSlug });
+                    type = 'individual'
+                }
+    
+                let Game = data;
+                title = ''
+                if(Type == 'teams') {
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.title}).then(t => {title = t})
+                }
 
-            if(args[2] == 'individual') {
-                TeamSlug = await Auxiliar.question({ m:m, question: Mensajes.Questions.General.Team }).then(data2 => {return data2});
-                TeamName = Auxiliar.fixTeamName({ TeamName: TeamSlug });
-                type = 'individual'
-            }
+                Get.GetRankingData({ TeamName: TeamName, Game: Game, Type: Type, Title: title})
+                    .then(async RankTable => {
+                        let table = '';
+                        if(RankTable.Rank != undefined) {
+                            if(Type == 'individual') {
 
-            let Game = data;
-
-            Get.GetRankingData({ TeamName: TeamName, Game: Game, Type: type})
-                .then(RankTable => {
-                    if(RankTable.Rank != undefined) {
-                        m.channel.send(`${RankTable.TeamName} - ${RankTable.Game} Ranking: `)
-                        .then(async function () {
-                            let table = ''
-                            for(i in RankTable.Rank) {
-                                table += `#${parseInt(i)+1} ${RankTable.Rank[i].Player}:         ${RankTable.Rank[i].Kills} Kills    |   Tops: ${RankTable.Rank[i].Tops}    |   ${RankTable.Rank[i].Points} Puntos\n`
+                                for(i in RankTable.Rank) {
+                                    table += `#${parseInt(i)+1} ${RankTable.Rank[i].Player}:         Kills: ${RankTable.Rank[i].Kills}    |   Tops: ${RankTable.Rank[i].Tops}    |   ${RankTable.Rank[i].Points} Puntos\n`
+                                }
+                                if(RankTable.Rank.length != 0) {
+                                    await m.channel.send(`${RankTable.TeamName} - ${RankTable.Game} Ranking: `)
+                                    await m.channel.send(table)
+                                } else {
+                                    await m.channel.send(Mensajes.error.GeneralError('Aún no hay ningún participante en este ranking'))
+                                }
                             }
-                            if(RankTable.Rank.length != 0) {
-                                await m.channel.send(table)
-                            } else {
-                                await m.channel.send(Mensajes.error.GeneralError('Aún no hay ningún participante en este ranking'))
+                            if(Type == 'teams') {
+                                
+                                for(i = 1; i < RankTable.Rank.length; i++) {
+                                    table += `#${parseInt(i)} ${RankTable.Rank[i].Player}:         Kills: ${RankTable.Rank[i].Kills}    |   Tops: ${RankTable.Rank[i].Tops}    |   ${RankTable.Rank[i].Points} Puntos\n`;
+                                }
+                                if(RankTable.Rank.length != 0) {
+                                    await m.channel.send(`${RankTable.Game} - ${RankTable.Rank[0]} Ranking: `)
+                                    await m.channel.send(table)
+                                } else {
+                                    await m.channel.send(Mensajes.error.GeneralError('Aún no hay ningún participante en este ranking'))
+                                }
                             }
-                        })
-                    } else {
-                        m.channel.send('No existe el ranking de ese juego.')
-                    }
-                })
-                .catch(err => { 
-                    m.channel.send(Mensajes.error.RankShowErrMessage)
-                })
-        })
-        .catch(err => m.channel.send( err ))
+                        } else {
+                            m.channel.send(Mensajes.error.GeneralError('No existe el ranking de ese juego'))
+                        }
+                    })
+                    .catch(err => { 
+                        console.log(err)
+                        m.channel.send(Mensajes.error.GeneralError('No se encontró el ranking'))
+                    })
+            })
+            .catch(err => m.channel.send( err ))
+            })
     },
     
     Equipos({m}) {
@@ -285,6 +408,50 @@ const Mostrar = {
                     message += `Equipo: ${data[i].TeamName}  ~  Cantidad de miembros: ${data[i].Players}\n`
                 }
                 await m.channel.send(message)
+            })
+        })
+    },
+
+    Bracket({m}) {
+        Auxiliar.question({m:m, question: Mensajes.Questions.General.type})
+        .then(t => {
+            Auxiliar.question({m:m, question: Mensajes.Questions.General.ID})
+            .then(ID => {
+                const Type = (t == 1) ? 'individual' : 'teams';
+                SearchBracket.ActualBracket({type: Type, ID: ID})
+                .then(data => {
+                    let players = '';
+                    let status = 'Estado actual: \n';
+                    Game = GamesData[data.Game].title
+
+                    for(p in data.teams) {
+                        players += Capitalize(data.teams[p][0]) + ' '
+                    }
+                    players = players.split(' '); players = 'Participantes ('+ (players.length - 1 )+'):   | ' + players.join(' | ');
+                    
+                    for(s in data.actualStatus) {
+                        let fp = data.actualStatus[s][0];
+                        let sp = data.actualStatus[s][1];
+
+                        status += Capitalize(data.teams[fp][0]) + ' ('+ data.teams[fp][1] +') vs ('+ data.teams[sp][1] +') ' + Capitalize(data.teams[sp][0]) + '\n'
+                    }
+
+                    let losers = ''
+                    for(p in data.losers) {
+                        for(s in data.losers[p]) {
+                            losers += Capitalize(data.losers[p][s][0]) + ' '
+                        }
+                    }
+                    losers = losers.split(' '); 
+                    if((losers.length - 1 ) != 0) {
+                        losers = 'Ya perdieron ('+ (losers.length - 1 )+'):   | ' + losers.join(' | ');
+                    }
+
+                    m.channel.send(Mensajes.Questions.custom(status))
+                    .then(() => {
+                        m.channel.send(Mensajes.Questions.custom(losers))
+                    })
+                })
             })
         })
     }
@@ -349,6 +516,7 @@ function Capitalize(str = '') {
 
 function fixTeamName({TeamName = ''}) {
     TeamName = TeamName.toLowerCase();
+
     let TeamsData = fs.readFileSync('./data/teams/index.json');
     TeamsData = JSON.parse(TeamsData)
 
@@ -357,6 +525,7 @@ function fixTeamName({TeamName = ''}) {
             return TeamsData[t].TeamName
         }
     }
+    return false
 }
 
 async function Prompt({m, question}) {
@@ -371,7 +540,7 @@ async function Prompt({m, question}) {
                     resolve(response)
                 })
                 .catch(collected => {
-                    reject('Ups')
+                    console.log('No se respondió el mensaje')
                 })
         })
     })

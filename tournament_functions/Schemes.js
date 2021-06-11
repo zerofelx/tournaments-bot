@@ -40,8 +40,18 @@ class RankTable {
     }
 }
 
+class TeamRankTable {
+    constructor(Type, Title, Game, Rank) {
+        this.Type = Type,
+        this.Title = Title,
+        this.Game = Game,
+        this.Rank = Rank
+    }
+}
+
 module.exports = {
     Player,
     Team,
-    RankTable
+    RankTable,
+    TeamRankTable
 }

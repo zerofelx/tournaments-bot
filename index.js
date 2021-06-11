@@ -23,11 +23,13 @@ const Commands = {
     'crear' : {
         'equipo'    : Crear.Equipo,
         'jugador'   : Crear.Jugador,
-        'ranking'      : Crear.Ranking
+        'ranking'   : Crear.Ranking,
+        'bracket'   : Crear.Bracket
     },
     'mostrar': {
         'equipos': Mostrar.Equipos,
-        'ranking': Mostrar.Ranking
+        'ranking': Mostrar.Ranking,
+        'bracket': Mostrar.Bracket
     },
     'ranking' : {
         'agregar' : {
@@ -35,6 +37,15 @@ const Commands = {
             'puntuacion': Agregar.Puntuacion,
             'puntuación': Agregar.Puntuacion,
             'equipo' : Agregar.EquipoARankTable
+        }
+    },
+    'bracket' : {
+        'agregar' : {
+            'puntuacion': Agregar.BracketPuntuacion,
+            'puntuación': Agregar.BracketPuntuacion
+        },
+        'siguiente' : {
+            'etapa': Agregar.NetxStage
         }
     }
 }
@@ -57,22 +68,25 @@ client.on('message', m => {
             }
         }
     } else if (m.content.substring(0, 2) == '**') {
-        let args = m.content.substring(2).split(' ');
-
-        let command = args[0];
-        let second = args[1]
-        let third = args[2]
-
-        command = command.toLowerCase()
-        second = second.toLowerCase()
-        third = third.toLowerCase()
-        if(command != '') {
-            try {
-                Commands[command][second][third]({args: args, m: m})
-            } catch {
-                console.log("Error de comando?: " + command + second + third)
+        try {
+            let args = m.content.substring(2).split(' ');
+    
+            let command = args[0];
+            let second = args[1]
+            let third = args[2]
+    
+            command = command.toLowerCase()
+            second = second.toLowerCase()
+            third = third.toLowerCase()
+            if(command != '') {
+                try {
+                    Commands[command][second][third]({args: args, m: m})
+                } catch {
+                    console.log("Error de comando?: " + command + second + third)
+                }
             }
         }
+        catch {}
     } else if(m.content.substring(0, 2) == '--') {
         let args = m.content.substring(2).split(' ');
         let command = args[0];

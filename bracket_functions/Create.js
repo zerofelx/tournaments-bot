@@ -9,6 +9,7 @@ async function NewBracket({ Game = 0, Participants = [], type = 'individual'}) {
         .then(data => {
             if(Participants.length %2 == 0){
                 const ID = nanoid(6);
+
                 let bracket = `{"${ID}": {}}`
                 bracket = JSON.parse(bracket)
 
@@ -24,7 +25,7 @@ async function NewBracket({ Game = 0, Participants = [], type = 'individual'}) {
                 teams = JSON.parse(teams)
 
                 let rounds = Participants.length / 2;
-                
+
                 if(rounds%2 == 0) {
                     let actualStatus = '{'
                     let currentPID = 1
@@ -55,8 +56,11 @@ async function NewBracket({ Game = 0, Participants = [], type = 'individual'}) {
                         if(err) { reject(err) }
                         resolve(ID)
                     })
+                } else {
+                    reject(`Rondas impares (${rounds}), agrega más equipos o reduce la cantidad de equipos.`)
                 }
-
+            } else {
+                reject('Participantes impares')
             }
         })
     })
