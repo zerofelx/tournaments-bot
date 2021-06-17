@@ -66,7 +66,7 @@ async function GetRankingData({TeamName = '', Game = 0, Type = 'individual', Tit
 
                 for(i in Rank) {
                     if(Rank[i][GameSlug] != undefined) {
-                        
+                        console.log(Rank[i][GameSlug])
                         if(individual) {
                             let Ranking = Rank[i][GameSlug].sort((a, b) => b.Points - a.Points)
                             let Table = new Scheme.RankTable(`${TeamName}`, GameTitle, Ranking)

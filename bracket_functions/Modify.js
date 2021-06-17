@@ -43,6 +43,10 @@ async function NextStage({ ID = '', type = 'individual'}) {
     let promise = new Promise((resolve, reject) => {
         Get.ActualBracket({ type: type })
         .then(data => {
+            let message = {
+                'Stage': 'Bracket',
+                'Message': ''
+            }
             for(b in data) {
                 if(data[b][ID]) {
                     let teams = data[b][ID].teams
@@ -91,11 +95,32 @@ async function NextStage({ ID = '', type = 'individual'}) {
                         }
                         actualStatus += '}'; actualStatus = JSON.parse(actualStatus); data[b][ID].actualStatus = actualStatus;
 
+                        let rounds = 0
+                        for(enf in actualStatus) {
+                            rounds++
+                        }
+                        
                         losers.push(addLosers); data[b][ID].losers = losers;
 
                         let write = JSON.stringify(data);
                         
                         fs.writeFileSync(path, write)
+
+                        if(rounds == 8) {
+                            message.Stage = "Etapa: Octavos de final" 
+                        }
+                        if(rounds == 4) {
+                            message.Stage = "Etapa: Cuartos de final"
+                        }
+                        if(rounds == 2) {
+                            message.Stage = "Etapa: Semifinal"
+                        }
+                        if(rounds == 1) {
+                            message.Stage = "Etapa: Final"
+                        }
+                        message.Message = 'Se cambió correctamente de etapa'
+
+                        resolve(message)
                     } else {
                         let firstFinalist = teams[status[1][0]]
                         let secondFinalist = teams[status[1][1]]
@@ -127,7 +152,10 @@ async function NextStage({ ID = '', type = 'individual'}) {
                         data.splice(b, 1);
                         let updateActual = JSON.stringify(data);
                         fs.writeFileSync(path, updateActual)
-                        resolve(addWinner)
+
+                        message.Stage = 'Ganador';
+                        message.Message = 'El ganador es: ' + addWinner[0] + ' con ' + addWinner[1] +' puntos finales!'
+                        resolve(message)
                     }
 
                 } else {
@@ -139,7 +167,33 @@ async function NextStage({ ID = '', type = 'individual'}) {
     return await promise
 }
 
+async function DeleteBracket({ID = '', Type = ''}) {
+    const Path = `./data/brackets/${Type}/actual.json`;
+
+    let promise = new Promise((resolve, reject) => {
+        let file = fs.readFileSync(Path);
+        file = JSON.parse(file);
+
+        for(b in file) {
+            if(file[b][ID]) {
+                if(b == 0) {
+                    file.shift()
+                } else {
+                    file.splice(b)
+                }
+                file = JSON.stringify(file);
+                fs.writeFileSync(Path, file)
+                resolve('hecho')
+            }
+        }
+        reject('Error')
+    })
+
+    return await promise
+}
+
 module.exports = {
     AddPoints,
-    NextStage
+    NextStage,
+    DeleteBracket
 }

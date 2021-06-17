@@ -221,8 +221,131 @@ async function AddPlayerPoints({
     return await promise
 }
 
+async function ResetRanking({TeamName = '', Game = 0, Type = 'individual', Title = ''}) {
+    const individual = (Type == 'individual')
+    const Participant = TeamName
+    const rankPath = individual ? `./data/teams/${TeamName.toLowerCase()}/rank.json` : `./data/teams/ranking.json`;
+    ParticipantSlug = Participant.toLowerCase()
+    Game = GamesData[Game].slug
+
+    let promise = new Promise((resolve, reject) => {
+        let file = fs.readFileSync(rankPath);
+        file = JSON.parse(file);
+        
+        if(individual) {
+            for(rank in file) {
+                if(file[rank][Game]) {
+                    for(player in file[rank][Game]) {
+                        file[rank][Game][player].Kills = 0;
+                        file[rank][Game][player].Tops = 0;
+                        file[rank][Game][player].Points = 0;
+                    }
+                }
+            }
+            file = JSON.stringify(file)
+            fs.writeFileSync(rankPath, file)
+            resolve('Modificado')
+        }
+        if(!individual) {
+            for(rank in file) {
+                for(r in file[rank]) {
+                    for(i in file[rank][r]) {
+                        if(file[rank][r][i][Title.toLowerCase()]) {
+                            let largo = file[rank][r][i][Title.toLowerCase()].length
+                            for(p = 1; p < largo; p++) {
+                                file[rank][r][i][Title.toLowerCase()][p].Kills = 0
+                                file[rank][r][i][Title.toLowerCase()][p].Tops = 0
+                                file[rank][r][i][Title.toLowerCase()][p].Points = 0
+                            }
+                        }
+                    }
+                }
+            }
+            file = JSON.stringify(file)
+            fs.writeFileSync(rankPath, file)
+            resolve('Modificado')
+        }
+        reject('No se logró')
+    })
+
+    return await promise
+}
+
+async function DeleteRanking({TeamName = '', Game = 0, Type = 'individual', Title = '' }) {
+    const individual = (Type == 'individual')
+    const Participant = TeamName
+    const rankPath = individual ? `./data/teams/${TeamName.toLowerCase()}/rank.json` : `./data/teams/ranking.json`;
+    ParticipantSlug = Participant.toLowerCase()
+    Game = GamesData[Game].slug
+
+    let promise = new Promise((resolve, reject) => {
+        let file = fs.readFileSync(rankPath);
+        file = JSON.parse(file);
+
+        if(individual) {
+            for(rank in file) {
+                if(file[rank][Game]) {
+                    for(index in file[rank]) {
+                        if(file[rank][index] == file[rank][Game]) {
+                            delete file[rank][index]
+                            for(i in file) {
+                                if(Object.keys(file[i]).length === 0) {
+                                    if(i == 0) {
+                                        file.shift()
+                                    } else {
+                                        file.splice(i)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            file = JSON.stringify(file)
+            fs.writeFileSync(rankPath, file)
+            resolve('Modificado')
+        }
+        if(!individual) {
+            for(rank in file) {
+                for(r in file[rank]) {
+                    for(i in file[rank][r]) {
+                        if(file[rank][r][i][Title.toLowerCase()]) {
+                            let index = parseInt(i)
+                            if(index == 0) {
+                                file[rank][r].shift()
+                            } else {
+                                file[rank][r].splice(index)
+                            }
+                        }
+                    }
+                }
+            }
+            for(rank in file) {
+                for(r in file[rank]) {
+                    if(file[rank][r].length == 0) {
+                        if(rank == 0) {
+                            file.shift()
+                        } else {
+                            file.splice(rank)
+                        }
+                    }
+                }
+            }
+            file = JSON.stringify(file)
+            fs.writeFileSync(rankPath, file)
+            resolve('Modificado')
+        }
+        reject('No se logró')
+    })
+
+    return await promise
+}
+
 module.exports = {
     AddPlayerPoints,
     AddPlayersNumbers,
-    AddPlayerToRankTable
+    AddPlayerToRankTable,
+    AddPlayerPoints,
+    ResetRanking,
+    DeleteRanking
 }

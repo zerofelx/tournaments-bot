@@ -39,13 +39,14 @@ for(G in GamesFieldsData) {
 
 const Mensajes = {
     'Questions' : {
+        'bracket': (fase, mensaje) => {return new Discord.MessageEmbed({color: PromptColor, fields: { name: fase, value: mensaje }})},
         'custom' : (message) => {return new Discord.MessageEmbed({color: PromptColor, fields: { name: 'Información:', value: message }})},
         'AddPoints': {
             'Points': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime las puntuaciones', value: '#[Cantidad de Kills] [El número del top]'} }),
             'BracketPoints': new Discord.MessageEmbed({ color: PromptColor, fields: { name: '¿Cuántos puntos deseas agregar?', value: 'Responde con #[Puntos]' }}),
         },
         'General': {
-            'sure': new Discord.MessageEmbed({ color: PromptColor, fields: { name: '¿Estás seguro de esta acción?', value: 'Responde con #[si] para continuar, en caso contrario no respondas nada.' }}),
+            'sure': new Discord.MessageEmbed({ color: PromptColor, fields: { name: '¿Estás seguro de esta acción? ¡No se puede deshacer!', value: 'Responde con #[si] para continuar, en caso contrario no respondas nada.' }}),
             'ID': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el ID', value: 'Responde con #[ID]' }}),
             'title': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el título', value: 'Responde con #[Título]' }}),
             'Participants': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el nombre de los participantes', value: 'Responde con #[Nombres de los participantes separados por comas]' }}),
@@ -177,7 +178,7 @@ const Crear = {
 const Agregar = {
     JugadorARankTable({args, m}) {
         let Username = args[3]
-
+        console.log(Username)
         if(Username != undefined) {
             Auxiliar.question({ m: m, question: Mensajes.Questions.General.GameAddPlayerQuestion})
             .then(data => {
@@ -320,7 +321,9 @@ const Agregar = {
                     const Type = (t == 1) ? 'individual' : 'teams';
                     if(sure.toLowerCase() == 'si') {
                         ModifyBracket.NextStage({ID: ID, type: Type})
-                        .then(Winner => console.log('Winner: ', Winner))
+                        .then(Msg => {
+                            m.channel.send(Mensajes.Questions.bracket(Msg.Stage, Msg.Message))
+                        })
                         .catch(err => m.channel.send(Mensajes.error.GeneralError(err)))
                     }
                 })
@@ -463,6 +466,91 @@ const Mostrar = {
 
 
 //
+//      RESETEAR:
+//
+const Resetear = {
+    Ranking({m}) {
+        Auxiliar.question({m:m, question: Mensajes.Questions.General.type})
+        .then(t => {
+            Auxiliar.question({m:m, question: Mensajes.Questions.General.GameQuestion})
+            .then(async Game => {
+                const Type = (t == 1) ? 'individual' : 'teams';
+                let TeamName = ''
+                let title = ''
+
+                if(Type == 'individual') {
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.Team})
+                    .then(team => {TeamName = team})
+                }
+                if(Type == 'teams') {
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.title})
+                    .then(tit => {title = tit})
+                }
+
+                Modify.ResetRanking({'TeamName': TeamName, 'Game': Game, 'Title': title, 'Type': Type})
+                .then(msg => m.channel.send(Mensajes.success(msg)))
+                .catch(msg => m.channel.send(Mensajes.error.GeneralError(msg)))
+            })
+        })
+    }
+}
+//
+//      FIN DE RESETEAR
+//
+
+
+//
+//      ELIMINAR:
+//
+const Eliminar = {
+    Bracket({m}) {
+        Auxiliar.question({m:m, question: Mensajes.Questions.General.type})
+        .then(t => {
+            Auxiliar.question({m:m, question: Mensajes.Questions.General.ID})
+            .then(ID => {
+                Auxiliar.question({m:m, question: Mensajes.Questions.General.sure})
+                .then(sure => {
+                    if(sure == "si") {
+                        const Type = (t == 1) ? 'individual' : 'teams';
+                        ModifyBracket.DeleteBracket({'ID': ID, 'Type': Type})
+                        .then(msg => m.channel.send(Mensajes.success(msg)))
+                        .catch(msg => m.channel.send(Mensajes.error.GeneralError(msg)))
+                    }
+                })
+            })
+        })
+    },
+    Ranking({m}) {
+        Auxiliar.question({m:m, question: Mensajes.Questions.General.type})
+        .then(t => {
+            Auxiliar.question({m:m, question: Mensajes.Questions.General.GameQuestion})
+            .then(async Game => {
+                const Type = (t == 1) ? 'individual' : 'teams';
+                let TeamName = ''
+                let title = ''
+
+                if(Type == 'individual') {
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.Team})
+                    .then(team => {TeamName = team})
+                }
+                if(Type == 'teams') {
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.title})
+                    .then(tit => {title = tit})
+                }
+
+                Modify.DeleteRanking({'Type': Type, 'Game': Game, 'Title': title, 'TeamName': TeamName})
+                .then(msg => m.channel.send(Mensajes.success(msg)))
+                .catch(msg => m.channel.send(Mensajes.error.GeneralError(msg)))
+            })
+        })
+    }
+}
+//
+//      FIN DE ELIMINAR
+//
+
+
+//
 //      FUNCIONES AUXILIARES:
 //
 const Auxiliar = {
@@ -554,5 +642,7 @@ async function Prompt({m, question}) {
 module.exports = {
     Crear,
     Agregar,
-    Mostrar
+    Mostrar,
+    Resetear,
+    Eliminar
 }

@@ -89,7 +89,6 @@ async function CreateRank({TeamName = '', game = 0, Type = 'individual', Title =
         }
         if (!individual) {
             filePath = './data/teams/ranking.json'
-            console.log(filePath)
         }
 
         // Busca el Ranking del juego en concreto, si ya existe saltará error.

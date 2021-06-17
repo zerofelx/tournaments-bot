@@ -18,6 +18,8 @@ const Funciones = require('./Funciones');
 const Agregar = Funciones.Agregar
 const Crear = Funciones.Crear;
 const Mostrar = Funciones.Mostrar;
+const Reiniciar = Funciones.Resetear;
+const Eliminar = Funciones.Eliminar;
 
 const Commands = {
     'crear' : {
@@ -46,7 +48,14 @@ const Commands = {
         },
         'siguiente' : {
             'etapa': Agregar.NetxStage
-        }
+        },
+    },
+    'reiniciar': {
+        'ranking': Reiniciar.Ranking
+    },
+    'eliminar': {
+        'ranking': Eliminar.Ranking,
+        'bracket': Eliminar.Bracket
     }
 }
 
@@ -54,18 +63,23 @@ client.on('message', m => {
 
     client.login(auth);
     if(m.content.substring(0, 1) == '!') {
-        let args = m.content.substring(1).split(' ');
-
-        let command = args[0];
-        let subcommand = args[1]
-        command = command.toLowerCase()
-        subcommand = subcommand.toLowerCase()
-        if(command != '') {
-            try {
-                Commands[command][subcommand]({args: args, m: m})
-            } catch {
-                console.log("Error de comando?: " + command, subcommand)
+        try {
+            let args = m.content.substring(1).split(' ');
+    
+            let command = args[0];
+            let subcommand = args[1]
+            command = command.toLowerCase()
+            subcommand = subcommand.toLowerCase()
+            if(command != '') {
+                try {
+                    Commands[command][subcommand]({args: args, m: m})
+                } catch {
+                    console.log("Error de comando?: " + command, subcommand)
+                }
             }
+        }
+        catch {
+            console.log("Error en !")
         }
     } else if (m.content.substring(0, 2) == '**') {
         try {
