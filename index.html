@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournaments Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <style>
+        p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="app" class="row pt-3">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h2 class="h5 text-center">Juegos</h2>
+                                <div class="games" v-for="item in Games" :key="item.slug">
+                                    <p>{{ item.title }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="teams" v-for="item in Teams" :key="item.TeamID">
+                                <div class="col-md-2">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="h5">{{ item.TeamName }}</p>
+                                            <p>Jugadores: {{ item.Players }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-12 mt-5">
+                <div class="row">
+                    <h2 class="h3 mb-2">Brackets activos:</h2>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <h2 class="h5 my-2 text-center">Por equipos</h2>
+                            <div v-for="item in BracketT" :key="item.id">
+                                <div class="card col-md-4">
+                                    <div class="card-body">
+                                        <p>ID: {{ item.id }}</p>
+                                        <p>Game: {{ Games[item.game].title }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="row">
+                            <h2 class="h5 my-2 text-center">Individual</h2>
+                            <div v-for="item in BracketI" :key="item.id">
+                                <div class="card col-md-4">
+                                    <div class="card-body">
+                                        <p>ID: {{ item.id }}</p>
+                                        <p>Game: {{ Games[item.game].title }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+        </div>
+    </div>
+
+
+    <script>
+        let Teams = []
+        let Games = []
+        let BracketIRaw = []
+        let BracketTRaw = []
+
+        let BracketT = []
+        let BracketI = []
+        
+        async function Init() {
+            await fetch('/teams')
+            .then(response => response.json())
+            .then(data => Teams = data)
+            
+            await fetch('/games')
+            .then(response => response.json())
+            .then(data => Games = data)
+            
+            await fetch('/bracket-individual')
+            .then(response => response.json())
+            .then(data => BracketIRaw = data)
+            
+            await fetch('/bracket-teams')
+            .then(response => response.json())
+            .then(data => BracketTRaw = data)
+
+            PushBracket(BracketTRaw, BracketT)
+            PushBracket(BracketIRaw, BracketI)
+
+            var app = new Vue({
+                el: '#app',
+                components: 'raw-data'
+            })
+            
+        }
+
+        function PushBracket(Raw, Destiny) {
+            for(b in Raw) {
+                for(key in Raw[b]) {
+                    let item = Raw[b][key];
+                    let data = {
+                        id: key,
+                        game: item.Game,
+                        teams: item.teams,
+                        status: item.actualStatus,
+                        losers: item.losers,
+                        winner: item.winner
+                    }
+                    Destiny.push(data)
+                }
+            }
+        }
+        
+        Init()
+    </script>
+</body>
+</html>
