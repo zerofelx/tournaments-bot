@@ -79,7 +79,7 @@ client.on('message', m => {
             }
         }
         catch {
-            console.log("Error en !")
+            console.log("A")
         }
     } else if (m.content.substring(0, 2) == '**') {
         try {
@@ -100,18 +100,23 @@ client.on('message', m => {
                 }
             }
         }
-        catch {}
+        catch { console.log('B') }
     } else if(m.content.substring(0, 2) == '--') {
-        let args = m.content.substring(2).split(' ');
-        let command = args[0];
-        
-        command = command.toLowerCase()
-        if(command != '') {
-            try {
-                Commands[command]({args: args, m: m})
-            } catch {
-                console.log("Error?: " + command)
+        try {
+            let args = m.content.substring(2).split(' ');
+            let command = args[0];
+            
+            command = command.toLowerCase()
+            if(command != '') {
+                try {
+                    Commands[command]({args: args, m: m})
+                } catch {
+                    console.log("Error?: " + command)
+                }
             }
+        }
+        catch {
+            console.log('C')
         }
     }
 });

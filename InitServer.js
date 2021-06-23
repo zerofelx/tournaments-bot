@@ -13,9 +13,16 @@ app.get('/', function (req, res) {
 app.get('/bracket-individual', function (req, res) {
     res.sendFile(Path.join(__dirname, '/data/brackets/individual/actual.json'))
 })
+app.get('/bracket-i-historial', function (req, res) {
+    res.sendFile(Path.join(__dirname, '/data/brackets/individual/historial.json'))
+})
 
 app.get('/bracket-teams', function (req, res) {
     res.sendFile(Path.join(__dirname, '/data/brackets/teams/actual.json'))
+})
+
+app.get('/bracket-t-historial', function (req, res) {
+    res.sendFile(Path.join(__dirname, '/data/brackets/teams/historial.json'))
 })
 
 app.get('/teams', function (req, res) {

@@ -11,11 +11,17 @@
         p {
             margin: 0;
         }
+        #app {
+            display: none;
+        }
+        #app.Show {
+            display: inherit
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="app" class="row pt-3">
+        <div id="app" class="row pt-3" :class="[Loaded ? 'Show' : 'Err']">
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-3">
@@ -51,6 +57,20 @@
                     <h2 class="h3 mb-2">Brackets activos:</h2>
                     <div class="col-md-6">
                         <div class="row">
+                            <h2 class="h5 my-2 text-center">Individual</h2>
+                            <div v-for="item in BracketI" :key="item.id">
+                                <div class="card col-md-4">
+                                    <div class="card-body">
+                                        <p>ID: {{ item.id }}</p>
+                                        <p>Game: {{ Games[item.game].title }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="row">
                             <h2 class="h5 my-2 text-center">Por equipos</h2>
                             <div v-for="item in BracketT" :key="item.id">
                                 <div class="card col-md-4">
@@ -62,15 +82,36 @@
                             </div>
                         </div>
                     </div>
-                    
+                </div>
+            </div>
+
+            <div class="col-md-12 mt-5">
+                <div class="row">
+                    <h2 class="h3 mb-2">Historial de brackets:</h2>
                     <div class="col-md-6">
                         <div class="row">
                             <h2 class="h5 my-2 text-center">Individual</h2>
-                            <div v-for="item in BracketI" :key="item.id">
+                            <div v-for="item in BracketIH" :key="item.id">
                                 <div class="card col-md-4">
                                     <div class="card-body">
                                         <p>ID: {{ item.id }}</p>
                                         <p>Game: {{ Games[item.game].title }}</p>
+                                        <p>Ganador: {{ item.winner[0] }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="row">
+                            <h2 class="h5 my-2 text-center">Por equipos</h2>
+                            <div v-for="item in BracketTH" :key="item.id">
+                                <div class="card col-md-4">
+                                    <div class="card-body">
+                                        <p>ID: {{ item.id }}</p>
+                                        <p>Game: {{ Games[item.game].title }}</p>
+                                        <p>Ganador: {{ item.winner[0] }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -88,9 +129,13 @@
         let Games = []
         let BracketIRaw = []
         let BracketTRaw = []
+        let BracketIHRaw = []
+        let BracketTHRaw = []
 
         let BracketT = []
         let BracketI = []
+        let BracketTH = []
+        let BracketIH = []
         
         async function Init() {
             await fetch('/teams')
@@ -109,12 +154,27 @@
             .then(response => response.json())
             .then(data => BracketTRaw = data)
 
+            await fetch('/bracket-i-historial')
+            .then(response => response.json())
+            .then(data => BracketIHRaw = data)
+            
+            await fetch('/bracket-t-historial')
+            .then(response => response.json())
+            .then(data => BracketTHRaw = data)
+
             PushBracket(BracketTRaw, BracketT)
             PushBracket(BracketIRaw, BracketI)
+            PushBracket(BracketTHRaw, BracketTH)
+            PushBracket(BracketIHRaw, BracketIH)
 
             var app = new Vue({
                 el: '#app',
-                components: 'raw-data'
+                components: 'raw-data',
+                data() {
+                    return {
+                        Loaded: true
+                    }
+                }
             })
             
         }
