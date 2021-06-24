@@ -48,8 +48,7 @@ const Mensajes = {
         'General': {
             'sure': new Discord.MessageEmbed({ color: PromptColor, fields: { name: '¿Estás seguro de esta acción? ¡No se puede deshacer!', value: 'Responde con #[si] para continuar, en caso contrario no respondas nada.' }}),
             'ID': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el ID', value: 'Responde con #[ID]' }}),
-            'Rtitle': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el título', value: 'Responde con #[Nombre del Ranking]' }}),
-            'Ttitle': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el título', value: 'Responde con #[Nombre del torneo]' }}),
+            'Rtitle': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el título', value: 'Responde con #[Nombre del Torneo]' }}),
             'Participants': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el nombre de los participantes', value: 'Responde con #[Nombres de los participantes separados por comas]' }}),
             'Player': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el nombre del jugador', value: 'Responde con #[Nombre del jugador] por favor.'} }),
             'Team': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el equipo', value: 'Responde con #[Nombre del equipo] por favor.'} }),
