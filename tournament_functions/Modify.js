@@ -27,7 +27,9 @@ async function AddPlayersNumbers({TeamName = '', Number = 0}) {
 
 async function AddPlayerToRankTable({TeamName = '', PlayerName = '', Game = 0, Type = 'individual', Title = ''}) {
     const individual = (Type == 'individual')
-    const Participant = individual ? PlayerName : TeamName
+    let  Participant = '';
+    if(individual) { Participant = PlayerName }
+    if(!individual) { Participant = TeamName }
     const rankPath = individual ? `./data/teams/${TeamName.toLowerCase()}/rank.json` : `./data/teams/ranking.json`;
     ParticipantSlug = Participant.toLowerCase()
     Game = GamesData[Game].slug

@@ -48,7 +48,8 @@ const Mensajes = {
         'General': {
             'sure': new Discord.MessageEmbed({ color: PromptColor, fields: { name: '¿Estás seguro de esta acción? ¡No se puede deshacer!', value: 'Responde con #[si] para continuar, en caso contrario no respondas nada.' }}),
             'ID': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el ID', value: 'Responde con #[ID]' }}),
-            'title': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el título', value: 'Responde con #[Título]' }}),
+            'Rtitle': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el título', value: 'Responde con #[Nombre del Ranking]' }}),
+            'Ttitle': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el título', value: 'Responde con #[Nombre del torneo]' }}),
             'Participants': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el nombre de los participantes', value: 'Responde con #[Nombres de los participantes separados por comas]' }}),
             'Player': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el nombre del jugador', value: 'Responde con #[Nombre del jugador] por favor.'} }),
             'Team': new Discord.MessageEmbed({ color: PromptColor, fields: { name: 'Dime el equipo', value: 'Responde con #[Nombre del equipo] por favor.'} }),
@@ -129,7 +130,7 @@ const Crear = {
                         return team
                     })
                 } else {
-                    title = await Auxiliar.question({ question: Mensajes.Questions.General.title, m:m })
+                    title = await Auxiliar.question({ question: Mensajes.Questions.General.Rtitle, m:m })
                     .then(title => { return title })
 
                 }
@@ -208,7 +209,7 @@ const Agregar = {
         .then(Team => {
             Auxiliar.question({ question: Mensajes.Questions.General.GameQuestion, m: m })
             .then(Game => {
-                Auxiliar.question({question: Mensajes.Questions.General.title, m: m })
+                Auxiliar.question({question: Mensajes.Questions.General.Rtitle, m: m })
                 .then(title => {
                     let TeamName = Auxiliar.fixTeamName({TeamName: Team})
                     Modify.AddPlayerToRankTable({ TeamName: TeamName, Game: Game, Type : 'teams' , Title: title})
@@ -247,7 +248,7 @@ const Agregar = {
 
                         let title = ''
                         if(Type == 'teams') {
-                            await Auxiliar.question({m:m, question: Mensajes.Questions.General.title})
+                            await Auxiliar.question({m:m, question: Mensajes.Questions.General.Rtitle})
                             .then(Title => {
                                 title = Title
                             })
@@ -359,7 +360,7 @@ const Mostrar = {
                 let Game = data;
                 title = ''
                 if(Type == 'teams') {
-                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.title}).then(t => {title = t})
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.Rtitle}).then(t => {title = t})
                 }
 
                 Get.GetRankingData({ TeamName: TeamName, Game: Game, Type: Type, Title: title})
@@ -483,7 +484,7 @@ const Resetear = {
                     .then(team => {TeamName = team})
                 }
                 if(Type == 'teams') {
-                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.title})
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.Rtitle})
                     .then(tit => {title = tit})
                 }
 
@@ -534,7 +535,7 @@ const Eliminar = {
                     .then(team => {TeamName = team})
                 }
                 if(Type == 'teams') {
-                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.title})
+                    await Auxiliar.question({m:m, question: Mensajes.Questions.General.Rtitle})
                     .then(tit => {title = tit})
                 }
 
